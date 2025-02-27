@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import 'android_params.dart';
 import 'ios_params.dart';
+import 'aurora_params.dart';
 
 part 'call_kit_params.g.dart';
 
@@ -25,6 +26,7 @@ class CallKitParams {
     this.headers,
     this.android,
     this.ios,
+    this.aurora,
   });
 
   final String? id;
@@ -42,6 +44,7 @@ class CallKitParams {
   final Map<String, dynamic>? headers;
   final AndroidParams? android;
   final IOSParams? ios;
+  final AuroraParams? aurora;
 
   factory CallKitParams.fromJson(Map<String, dynamic> json) =>
       _$CallKitParamsFromJson(json);
