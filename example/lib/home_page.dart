@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
+import 'package:flutter_callkit_incoming/entities/aurora_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_event.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
 import 'package:flutter_callkit_incoming/entities/ios_params.dart';
@@ -129,7 +130,7 @@ class HomePageState extends State<HomePage> {
   }
 
   Future<void> makeFakeCallInComing() async {
-    await Future.delayed(const Duration(seconds: 10), () async {
+    await Future.delayed(const Duration(seconds: 1), () async {
       _currentUuid = _uuid.v4();
 
       final params = CallKitParams(
@@ -179,7 +180,9 @@ class HomePageState extends State<HomePage> {
           supportsUngrouping: false,
           ringtonePath: 'system_ringtone_default',
         ),
+        aurora: AuroraParams(true, "+799999999", "Maxim Makarenkov", "+712345678", "Nail Nuriev", false, null, CallStatus.dialing)
       );
+      print("start call dart");
       await FlutterCallkitIncoming.showCallkitIncoming(params);
     });
   }

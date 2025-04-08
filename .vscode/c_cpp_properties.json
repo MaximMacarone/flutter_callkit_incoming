@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/aurora/include/**",
+                "/usr/include/**",
+                "/usr/local/include/**",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/flutter-embedder",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/glib-2.0",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/lib/glib-2.0/include",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/qt5",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/qt5/QtCore",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/qt5/QtDBus",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/qt5/QtGui",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/qt5/QtQml",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/qt5/QtQuick",
+                "/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl/usr/include/flutter-embedder/flutter"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang",
+            "compilerArgs": [
+                "--target=armv7-linux-gnueabihf",
+                "--sysroot=/home/maxim/AuroraPlatformSDK-5.1.1.60/targets/AuroraOS-5.1.1.60-base-armv7hl"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-arm",
+            "configurationProvider": "ms-vscode.cpptools"
+        }
+    ],
+    "version": 4
+}
