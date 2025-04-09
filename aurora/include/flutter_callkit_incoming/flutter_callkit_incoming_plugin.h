@@ -41,7 +41,7 @@ private:
     void RegisterEventChannel();
 
     // Methods MethodCall
-    EncodableValue onStartIncomingCall();
+    EncodableValue onStartIncomingCall(const EncodableValue flutterParams, std::unique_ptr<MethodResult> result);
 
     // Variables
     std::unique_ptr<MethodChannel> m_methodChannel;
@@ -51,7 +51,6 @@ private:
     std::unique_ptr<CallManager> m_callManager;
 
     //Utility
-    QVariantMap convertAuroraParams(const flutter::EncodableMap& auroraMap);
 };
 
 #endif /* FLUTTER_PLUGIN_FLUTTER_CALLKIT_INCOMING_PLUGIN_H */

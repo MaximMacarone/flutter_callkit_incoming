@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <QDebug>
+#include <iostream>
 
 #include "include/flutter_callkit_incoming/callmanagerdbusadaptor.h"
 
@@ -10,6 +11,14 @@
 static const QString s_callManagerObjectPath =
         QStringLiteral("/com/hiennv/flutterCallKitIncoming/DBus/ObjectManager");
 static const int s_answerInterval = 10 * 1000;
+
+
+void printQVariantMap(const QVariantMap& map) {
+    std::cout << "\n\nAuroraParams:\n\n" << std::endl;
+    for (auto it = map.begin(); it != map.end(); ++it) {
+        std::cout << "  " << it.key().toStdString() << ": " << it.value().toString().toStdString() << std::endl;
+      }
+  }
 
 
 CallManager::CallManager(QObject *parent) : QObject(parent)
@@ -56,7 +65,7 @@ void CallManager::registerCallManager()
  */
 void CallManager::registerCall1DBusObject(QVariantMap params)
 {
-
+    std::cout << "[Call manager] invoke registerCall1DBusObject\n";
     qDebug() << "Properties:" << params;
 
     m_call1DBusObject.registerCall1DBusObject(params.value("incoming").toBool());
@@ -71,6 +80,16 @@ void CallManager::registerCall1DBusObject(QVariantMap params)
  */
 void CallManager::startIncomingCall(QVariantMap params)
 {
+    std::cout << "[Call manager] invoke startIncomingCall\n";
+    std::cout << "\n\nAuroraParams (before printing):\n\n" << std::endl;
+    // Проверяем, что map не пустой
+    if (params.isEmpty()) {
+        std::cout << "AuroraParams is empty!" << std::endl;
+    } else {
+        printQVariantMap(params);
+    }
+    registerCall1DBusObject(params);
+    printQVariantMap(params);
     registerCall1DBusObject(params);
 }
 

@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusError>
+#include <iostream>
 
 #include "include/flutter_callkit_incoming/call1dbusadaptor.h"
 
@@ -93,6 +94,7 @@ const QString Call1DBusObject::statusToString(const uint32_t status)
  */
 void Call1DBusObject::registerCall1DBusObject(const bool incoming)
 {
+    std::cout << "[Call1DbusObject] invoked registerCall1DBusObject";
     if (!QDBusConnection::sessionBus().registerObject(s_call1ObjectPath, this)) {
         QString message = QDBusConnection::sessionBus().lastError().message();
         qWarning() << message;
@@ -117,5 +119,6 @@ void Call1DBusObject::unregisterCall1DBusObject()
  */
 void Call1DBusObject::sendStatus(const CallStatus status)
 {
+    std::cout << "[Call Dbus object] emit status changed";
     emit StatusChanged(status);
 }

@@ -30,12 +30,12 @@ Map<String, dynamic> _$AuroraParamsToJson(AuroraParams instance) =>
     };
 
 const _$CallStatusEnumMap = {
-  CallStatus.unknown: 'unknown',
-  CallStatus.disconnected: 'disconnected',
-  CallStatus.dialing: 'dialing',
-  CallStatus.ringing: 'ringing',
-  CallStatus.rejecting: 'rejecting',
-  CallStatus.accepting: 'accepting',
-  CallStatus.active: 'active',
-  CallStatus.held: 'held',
+  CallStatus.unknown: '0',
+  CallStatus.disconnected: '1',
+  CallStatus.dialing: '2',
+  CallStatus.ringing: '3',
+  CallStatus.rejecting: '4',
+  CallStatus.accepting: '5',
+  CallStatus.active: '6',
+  CallStatus.held: '7',
 };

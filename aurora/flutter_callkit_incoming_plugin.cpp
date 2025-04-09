@@ -10,6 +10,7 @@ namespace Methods {
 constexpr auto StartIncomingCall = "startIncomingCall";
 } // namespace Methods
 
+
 void FlutterCallkitIncomingPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *registrar) {
   auto methodChannel = std::make_unique<MethodChannel>(
@@ -45,32 +46,12 @@ FlutterCallkitIncomingPlugin::FlutterCallkitIncomingPlugin(
 void FlutterCallkitIncomingPlugin::RegisterMethodHandler() {
   m_methodChannel->SetMethodCallHandler(
       [this](const MethodCall &call, std::unique_ptr<MethodResult> result) {
-        std::cout << "Searching for method\n";
         std::cout << call.method_name() << "\n";
-        if (call.method_name().compare("requestNotificationPermission") == 0) {
-          const auto* args = std::get_if<flutter::EncodableMap>(call.arguments());
-          if (args) {
-            auto it = args->find(flutter::EncodableValue("aurora"));
-            if (it != args->end()) {
-              const auto* auroraMap = std::get_if<flutter::EncodableMap>(&it->second);
-              if (auroraMap) {
-                QVariantMap properties = convertAuroraParams(*auroraMap);
-                bool incoming = properties.value("incoming").toBool();
-                  
-                m_callManager->startIncomingCall(properties);
-
-                result->Success(flutter::EncodableValue("OK"));
-                return;
-              }
-            }
-            result->Error("Error");
-          } else {
-            result->Error("Error");
-          }
-        } else {
-          result->Success();
-        }
-      });
+        if (call.method_name().compare("showCallkitIncoming") == 0) {
+          const EncodableValue* args_ptr = call.arguments();
+		  onStartIncomingCall(*args_ptr, std::move(result));
+		}
+	});
 }
 
 void FlutterCallkitIncomingPlugin::RegisterEventChannel() {
@@ -90,49 +71,58 @@ void FlutterCallkitIncomingPlugin::RegisterEventChannel() {
   m_eventChannel->SetStreamHandler(std::move(m_streamHandler));
 }
 
-QVariantMap FlutterCallkitIncomingPlugin::convertAuroraParams(const flutter::EncodableMap& auroraMap) {
-  QVariantMap result;
+EncodableValue FlutterCallkitIncomingPlugin::onStartIncomingCall(const EncodableValue flutterParams, std::unique_ptr<MethodResult> result) {
+    if (std::holds_alternative<EncodableMap>(flutterParams)) {
+        const EncodableMap& argsMap = std::get<EncodableMap>(flutterParams);
+        auto auroraParams = argsMap.find("aurora");
+        if (auroraParams != argsMap.end()) {
+            const EncodableValue& auroraValue = auroraParams->second;
 
-  auto getString = [&](const std::string& key) -> QString {
-    auto it = auroraMap.find(flutter::EncodableValue(key));
-    if (it != auroraMap.end()) {
-      return QString::fromStdString(std::get<std::string>(it->second));
-    }
-    return {};
-  };
+            const EncodableMap& auroraMap = std::get<EncodableMap>(auroraValue);
 
-  auto getBool = [&](const std::string& key) -> bool {
-    auto it = auroraMap.find(flutter::EncodableValue(key));
-    if (it != auroraMap.end()) {
-      return std::get<bool>(it->second);
-    }
-    return false;
-  };
+			auto localName = std::get_if<std::string>(&auroraMap.find("localName")->second);
+			auto localHandle = std::get_if<std::string>(&auroraMap.find("localHandle")->second);
+			auto remoteName = std::get_if<std::string>(&auroraMap.find("remoteName")->second);
+			auto remoteHandle = std::get_if<std::string>(&auroraMap.find("remoteHandle")->second);
+			auto incoming = std::get_if<std::string>(&auroraMap.find("incoming")->second);
+			auto status = std::get_if<std::string>(&auroraMap.find("status")->second);
 
-  auto getOptionalBool = [&](const std::string& key) -> QVariant {
-    auto it = auroraMap.find(flutter::EncodableValue(key));
-    if (it != auroraMap.end()) {
-      return QVariant(std::get<bool>(it->second));
-    }
-    return QVariant();
-  };
+			if (localName && localHandle && remoteName && remoteHandle && incoming && status) {
+                std::cout << "localName: " << *localName
+                          << ", localHandle: " << *localHandle
+                          << ", remoteName: " << *remoteName
+                          << ", remoteHandle: " << *remoteHandle
+                          << ", incoming: " << *incoming
+                          << ", status: " << *status << std::endl;
+            } else {
+                std::cout << "One or more expected keys were not found in the 'aurora' map." << std::endl;
+                result->Error("Invalid Arguments", "Expected values not found in the 'aurora' map.");
+                //return EncodableValue();  // Возвращаем пустое значение
+            }
 
-  auto getInt = [&](const std::string& key) -> int {
-    auto it = auroraMap.find(flutter::EncodableValue(key));
-    if (it != auroraMap.end()) {
-      return std::get<int>(it->second);
-    }
-    return 0;
-  };
+            // for (const auto& entry : auroraMap) {
+            //     const std::string* key_str = std::get_if<std::string>(&entry.first);
+            //     std::string key = key_str ? *key_str : "unknown";
 
-  result["incoming"] = getBool("incoming");
-  result["localHandle"] = getString("localHandle");
-  result["localName"] = getString("localName");
-  result["remoteHandle"] = getString("remoteHandle");
-  result["remoteName"] = getString("remoteName");
-  result["holdable"] = getOptionalBool("holdable");
-  result["uri"] = getString("uri");
-  result["status"] = getInt("status");
-
-  return result;
+            //     std::string value_str;
+            //     if (std::holds_alternative<std::string>(entry.second)) {
+            //         value_str = std::get<std::string>(entry.second);
+            //     } else if (std::holds_alternative<bool>(entry.second)) {
+            //         bool b = std::get<bool>(entry.second);
+            //         value_str = b ? "true" : "false";
+            //     } else if (std::holds_alternative<int>(entry.second)) {
+            //         value_str = std::to_string(std::get<int>(entry.second));
+            //     } else if (std::holds_alternative<int64_t>(entry.second)) {
+            //         value_str = std::to_string(std::get<int64_t>(entry.second));
+            //     } else {
+            //         value_str = "non-string type";
+            //     }
+            //     std::cout << "Aurora Key: " << key << ", Value: " << value_str << std::endl;
+            // }
+        } else {
+            std::cout << "No 'aurora' key found in the arguments." << std::endl;
+        }
+	} else {
+		result->Error("Err");
+	}
 }
