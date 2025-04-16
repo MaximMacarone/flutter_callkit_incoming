@@ -31,6 +31,7 @@ set(HEADERS
     include/flutter_callkit_incoming/call1dbusobject.h
     include/flutter_callkit_incoming/call1dbusadaptor.h
     include/flutter_callkit_incoming/callservice1dbusinterface.h
+    include/flutter_callkit_incoming/aurora_params.h
 )
 
 set(SOURCES
@@ -40,6 +41,7 @@ set(SOURCES
     call1dbusobject.cpp
     call1dbusadaptor.cpp
     callservice1dbusinterface.cpp
+    aurora_params.cpp
 )
 
 add_library(${PLUGIN_NAME} SHARED ${SOURCES} ${HEADERS})

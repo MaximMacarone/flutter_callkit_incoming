@@ -5,6 +5,7 @@
 #include <QtDBus/QDBusError>
 
 #include <QDebug>
+#include <iostream>
 
 #include "include/flutter_callkit_incoming/callservice1dbusinterface.h"
 
@@ -12,10 +13,6 @@ static const QString s_callService1DBusService = QStringLiteral("org.nemomobile.
 static const QString s_callService1DBusObject = QStringLiteral("/ru/auroraos/call/service");
 static const QString s_callService1DBusInterface = QStringLiteral("ru.auroraos.Call.Service1");
 
-/*!
- * \brief Constructor initializes the QDBusInterface instance to call the DBus-interface.
- * \param parent QObject parent instance.
- */
 CallService1DBusInterface::CallService1DBusInterface(QObject *parent)
     : QObject(parent), m_isInitialized(false)
 {
@@ -26,10 +23,6 @@ bool CallService1DBusInterface::isInitialized() const
     return m_isInitialized;
 }
 
-/*!
- * \brief Calls the 'RegisterCallManager' method of the DBus-interface.
- * \param dbusObjectPath DBus-object path to register as call manager.
- */
 void CallService1DBusInterface::registerCallManager(const QString &dbusObjectPath)
 {
     QVariant dbusObjPathVariant = QVariant::fromValue(QDBusObjectPath(dbusObjectPath));
@@ -40,17 +33,15 @@ void CallService1DBusInterface::registerCallManager(const QString &dbusObjectPat
                                        reply.error().name(), reply.error().message());
         qWarning() << message;
         emit dbusErrorReceived(message);
+        std::cout << "\nFail to Register CallManager";
         return;
     }
     qInfo() << QStringLiteral("%1.RegisterCallManager('%2') called successfully")
                        .arg(s_callService1DBusInterface, dbusObjectPath);
+    std::cout << "Register CallManager called successfully";
     emit callManagerRegistered();
 }
 
-/*!
- * \brief Initializes the class QDBusInterface instance that will be perform requsts to the
- * ru.auroraos.Call.Service1 DBus-interface.
- */
 void CallService1DBusInterface::initialize()
 {
     m_dbusInterface.reset(new QDBusInterface(s_callService1DBusService, s_callService1DBusObject,

@@ -1,7 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'aurora_params.g.dart';
-
 enum CallStatus {
   unknown,
   disconnected,
@@ -13,7 +9,6 @@ enum CallStatus {
   held,
 }
 
-@JsonSerializable(explicitToJson: true)
 class AuroraParams {
   final bool incoming;
   final String localHandle;
@@ -22,20 +17,42 @@ class AuroraParams {
   final String remoteName;
   final bool? holdable;
   final String? uri;
-  CallStatus status;
+  final CallStatus status;
 
-  AuroraParams(
-    this.incoming,
-    this.localHandle,
-    this.localName,
-    this.remoteHandle,
-    this.remoteName,
-    this.holdable,
-    this.uri,
-    this.status);
+  const AuroraParams({
+    required this.incoming,
+    required this.localHandle,
+    required this.localName,
+    required this.remoteHandle,
+    required this.remoteName,
+    required this.holdable,
+    required this.uri,
+    required this.status,
+  });
 
-      factory AuroraParams.fromJson(Map<String, dynamic> json) =>
-      _$AuroraParamsFromJson(json);
+  factory AuroraParams.fromJson(Map<String, dynamic> json) {
+    return AuroraParams(
+      incoming: json['incoming'] as bool,
+      localHandle: json['localHandle'] as String,
+      localName: json['localName'] as String,
+      remoteHandle: json['remoteHandle'] as String,
+      remoteName: json['remoteName'] as String,
+      holdable: json['holdable'] as bool?,
+      uri: json['uri'] as String?,
+      status: CallStatus.values[int.parse(json['status'].toString())],
+    );
+  }
 
-  Map<String, dynamic> toJson() => _$AuroraParamsToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'incoming': incoming,
+      'localHandle': localHandle,
+      'localName': localName,
+      'remoteHandle': remoteHandle,
+      'remoteName': remoteName,
+      'holdable': holdable,
+      'uri': uri,
+      'status': status.index, // 👈 теперь точно int
+    };
+  }
 }

@@ -11,7 +11,7 @@ import 'package:uuid/uuid.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
-  await Firebase.initializeApp(); //make sure firebase is initialized before using it (showCallkitIncoming)
+  //await Firebase.initializeApp(); //make sure firebase is initialized before using it (showCallkitIncoming)
   showCallkitIncoming(const Uuid().v4());
 }
 
@@ -59,6 +59,7 @@ Future<void> showCallkitIncoming(String uuid) async {
       supportsUngrouping: false,
       ringtonePath: 'system_ringtone_default',
     ),
+    aurora: const AuroraParams(incoming: true, localHandle: "+79999999999", localName: "Maxim Makarenkov", remoteHandle: "+71234567890", remoteName: "Nail Nuriev", holdable: false, uri: null, status: CallStatus.ringing)
   );
   await FlutterCallkitIncoming.showCallkitIncoming(params);
 }
@@ -79,13 +80,13 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late final Uuid _uuid;
   String? _currentUuid;
 
-  late final FirebaseMessaging _firebaseMessaging;
+  //late final FirebaseMessaging _firebaseMessaging;
 
   @override
   void initState() {
     super.initState();
     _uuid = const Uuid();
-    initFirebase();
+    //initFirebase();
     WidgetsBinding.instance.addObserver(this);
     //Check call when open app from terminated
     checkAndNavigationCallingPage();
@@ -128,19 +129,19 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  Future<void> initFirebase() async {
-    await Firebase.initializeApp();
-    _firebaseMessaging = FirebaseMessaging.instance;
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      print('Message title: ${message.notification?.title}, body: ${message.notification?.body}, data: ${message.data}');
-      _currentUuid = _uuid.v4();
-      showCallkitIncoming(_currentUuid!);
-    });
-    _firebaseMessaging.getToken().then((token) {
-      print('Device Token FCM: $token');
-    });
-  }
+  // Future<void> initFirebase() async {
+  //   await Firebase.initializeApp();
+  //   _firebaseMessaging = FirebaseMessaging.instance;
+  //   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+  //     print('Message title: ${message.notification?.title}, body: ${message.notification?.body}, data: ${message.data}');
+  //     _currentUuid = _uuid.v4();
+  //     showCallkitIncoming(_currentUuid!);
+  //   });
+  //   _firebaseMessaging.getToken().then((token) {
+  //     print('Device Token FCM: $token');
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

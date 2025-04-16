@@ -15,14 +15,11 @@
 #include "dbustypes.h"
 #include "callservice1dbusinterface.h"
 #include "call1dbusobject.h"
+#include "callmanagerdbusadaptor.h"
 //#include "earpieceplayer.h"
 
 class CallManagerDBusAdaptor;
 
-/*!
- * \brief CallManager class is call manager that implements the org.freedesktop.DBus.ObjectManager
- * interface: https://developer.auroraos.ru/doc/5.0.0/software_development/reference/call_api.
- */
 class CallManager : public QObject, public QDBusContext
 {
     Q_OBJECT

@@ -1,8 +1,6 @@
 #ifndef FLUTTER_PLUGIN_FLUTTER_CALLKIT_INCOMING_PLUGIN_H
 #define FLUTTER_PLUGIN_FLUTTER_CALLKIT_INCOMING_PLUGIN_H
 
-#include </home/maxim/AuroraProjects/flutter_callkit_incoming/aurora/include/flutter_callkit_incoming/globals.h>
-
 #include <flutter/plugin_registrar.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
@@ -12,7 +10,9 @@
 #include <flutter/event_sink.h>
 #include <flutter/standard_method_codec.h>
 
-#include "/home/maxim/AuroraProjects/flutter_callkit_incoming/aurora/include/flutter_callkit_incoming/callmanager.h"
+#include "globals.h"
+#include "callmanager.h"
+#include "aurora_params.h"
 
 // Flutter encodable
 typedef flutter::EncodableValue EncodableValue;
@@ -42,6 +42,21 @@ private:
 
     // Methods MethodCall
     EncodableValue onStartIncomingCall(const EncodableValue flutterParams, std::unique_ptr<MethodResult> result);
+    EncodableValue onShowMissCallNotification();
+    EncodableValue onHideCallKitIncoming();
+    EncodableValue onStartCall();
+    EncodableValue onMuteCall();
+    EncodableValue onIsMuted();
+    EncodableValue onHoldCall();
+    EncodableValue onEndCall();
+    EncodableValue onSetCallConnected();
+    EncodableValue onEndAllCalls();
+    EncodableValue onActiveCalls();
+    EncodableValue pnGetDevicePushTokenVoIP();
+    EncodableValue onSilenceEvents();
+    EncodableValue onUnsilenceEvents();
+    EncodableValue onRequestNotificationPermission();
+    EncodableValue onRequestFullIntentPermission();
 
     // Variables
     std::unique_ptr<MethodChannel> m_methodChannel;

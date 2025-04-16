@@ -130,7 +130,6 @@ class HomePageState extends State<HomePage> {
   }
 
   Future<void> makeFakeCallInComing() async {
-    await Future.delayed(const Duration(seconds: 1), () async {
       _currentUuid = _uuid.v4();
 
       final params = CallKitParams(
@@ -180,11 +179,9 @@ class HomePageState extends State<HomePage> {
           supportsUngrouping: false,
           ringtonePath: 'system_ringtone_default',
         ),
-        aurora: AuroraParams(true, "+799999999", "Maxim Makarenkov", "+712345678", "Nail Nuriev", false, null, CallStatus.dialing)
+        aurora: const AuroraParams(incoming: true, localHandle: "+7999999999", localName: "Maxim Makarenkov", remoteHandle: "+7123456789", remoteName: "Nail Nuriev", holdable: false, uri: null, status: CallStatus.ringing)
       );
-      print("start call dart");
       await FlutterCallkitIncoming.showCallkitIncoming(params);
-    });
   }
 
   Future<void> endCurrentCall() async {
