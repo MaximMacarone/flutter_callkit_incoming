@@ -8,7 +8,7 @@
             "program": "${workspaceFolder}/example/build/aurora/psdk_5.1.1.60/aurora-arm/debug/com.hiennv.flutter_callkit_incoming_example",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb-multiarch",
-            "miDebuggerServerAddress": "192.168.0.103:10006",
+            "miDebuggerServerAddress": "192.168.2.15:10006",
             "useExtendedRemote": true,
             "cwd": "${workspaceRoot}",
             "setupCommands": [
