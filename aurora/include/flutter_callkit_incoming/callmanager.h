@@ -11,6 +11,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QVariantMap>
+#include <QtDBus/qdbusmetatype.h>
+
+#include <cstdint>
 
 #include "dbustypes.h"
 #include "callservice1dbusinterface.h"

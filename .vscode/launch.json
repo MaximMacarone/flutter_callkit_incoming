@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach with GDB",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/example/build/aurora/psdk_5.1.1.60/aurora-arm/debug/com.hiennv.flutter_callkit_incoming_example",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "miDebuggerServerAddress": "192.168.0.103:10006",
+            "useExtendedRemote": true,
+            "cwd": "${workspaceRoot}",
+            "setupCommands": [
+            {
+                "description": "Set remote exec file",
+                "text": "set remote exec-file /usr/bin/com.hiennv.flutter_callkit_incoming_example",
+                "ignoreFailures": true
+            }
+            ]
+        }
+    ]
+}

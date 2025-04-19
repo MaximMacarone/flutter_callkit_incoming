@@ -15,6 +15,7 @@ static const QString s_call1ObjectPath = QStringLiteral("/com/hiennv/flutterCall
 Call1DBusObject::Call1DBusObject(QObject *parent) : QObject(parent)
 {
     m_dbusAdaptor = new Call1DBusAdaptor(this);
+    
     connect(this, &Call1DBusObject::StatusChanged, m_dbusAdaptor, &Call1DBusAdaptor::StatusChanged);
 }
 
@@ -63,11 +64,20 @@ const QString Call1DBusObject::statusToString(const uint32_t status)
 
 void Call1DBusObject::registerCall1DBusObject(const bool incoming)
 {
+    if (!QDBusConnection::sessionBus().isConnected()) {
+        qWarning() << "No connection to session bus";
+    }
+
+    qInfo() << "Registering object at path: " << s_call1ObjectPath;
+    qInfo() << "Object parent: " << this->parent();
+    qInfo() << "MetaObject name: " << this->metaObject()->className();
+
     if (!QDBusConnection::sessionBus().registerObject(s_call1ObjectPath, this)) {
-        QString message = QDBusConnection::sessionBus().lastError().message();
-        std::cout << "DBus-object ERROR";
-        qWarning() << message;
-        emit dbusErrorReceived(message);
+        QDBusError error = QDBusConnection::sessionBus().lastError();
+        qWarning() << error.name();
+        qWarning() << error.message();
+        qWarning() << error.type();
+        //emit dbusErrorReceived(message);
         return;
     }
     qInfo() << QStringLiteral("DBus-object %1 is registered successfully").arg(s_call1ObjectPath);

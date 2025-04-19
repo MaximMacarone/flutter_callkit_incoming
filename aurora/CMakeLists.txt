@@ -32,6 +32,8 @@ set(HEADERS
     include/flutter_callkit_incoming/call1dbusadaptor.h
     include/flutter_callkit_incoming/callservice1dbusinterface.h
     include/flutter_callkit_incoming/aurora_params.h
+    include/flutter_callkit_incoming/dbustypes.h
+    include/flutter_callkit_incoming/globals.h
 )
 
 set(SOURCES

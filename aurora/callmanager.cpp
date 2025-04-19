@@ -13,6 +13,15 @@ static const int s_answerInterval = 10 * 1000;
 
 CallManager::CallManager(QObject *parent) : QObject(parent)
 {
+    qRegisterMetaType<VariantMapMap>("VariantMapMap");
+    qDBusRegisterMetaType<VariantMapMap>();
+
+    qRegisterMetaType<DBusManagerStruct>("DBusManagerStruct");
+    qDBusRegisterMetaType<DBusManagerStruct>();
+
+    qRegisterMetaType<uint32_t>("uint32_t");
+    qDBusRegisterMetaType<uint32_t>();
+
     m_dbusAdaptor = new CallManagerDBusAdaptor(this);
     connect(this, &CallManager::InterfacesAdded, m_dbusAdaptor,
             &CallManagerDBusAdaptor::InterfacesAdded);
