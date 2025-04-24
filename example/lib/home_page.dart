@@ -179,7 +179,6 @@ class HomePageState extends State<HomePage> {
           supportsUngrouping: false,
           ringtonePath: 'system_ringtone_default',
         ),
-        aurora: const AuroraParams(incoming: true, localHandle: "+7999999999", localName: "Maxim Makarenkov", remoteHandle: "+7123456789", remoteName: "Nail Nuriev", holdable: false, uri: null, status: CallStatus.ringing)
       );
       await FlutterCallkitIncoming.showCallkitIncoming(params);
   }
@@ -283,6 +282,7 @@ class HomePageState extends State<HomePage> {
   }
 
   void onEvent(CallEvent event) {
+    print(event);
     if (!mounted) return;
     setState(() {
       textEvents += '---\n${event.toString()}\n';

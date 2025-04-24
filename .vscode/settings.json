@@ -74,7 +74,8 @@
         "iomanip": "cpp",
         "span": "cpp",
         "sstream": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "qjsonobject": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

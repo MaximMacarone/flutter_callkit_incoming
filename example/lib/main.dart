@@ -1,161 +1,149 @@
-import 'dart:async';
+import "dart:async";
 
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
-import 'package:flutter_callkit_incoming_example/app_router.dart';
-import 'package:flutter_callkit_incoming_example/navigation_service.dart';
 import 'package:uuid/uuid.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print("Handling a background message: ${message.messageId}");
-  //await Firebase.initializeApp(); //make sure firebase is initialized before using it (showCallkitIncoming)
-  showCallkitIncoming(const Uuid().v4());
-}
+import 'contact.dart';
 
-Future<void> showCallkitIncoming(String uuid) async {
-  final params = CallKitParams(
-    id: uuid,
-    nameCaller: 'Hien Nguyen',
-    appName: 'Callkit',
-    avatar: 'https://i.pravatar.cc/100',
-    handle: '0123456789',
-    type: 0,
-    duration: 30000,
-    textAccept: 'Accept',
-    textDecline: 'Decline',
-    missedCallNotification: const NotificationParams(
-      showNotification: true,
-      isShowCallback: true,
-      subtitle: 'Missed call',
-      callbackText: 'Call back',
-    ),
-    extra: <String, dynamic>{'userId': '1a2b3c4d'},
-    headers: <String, dynamic>{'apiKey': 'Abc@123!', 'platform': 'flutter'},
-    android: const AndroidParams(
-      isCustomNotification: true,
-      isShowLogo: false,
-      ringtonePath: 'system_ringtone_default',
-      backgroundColor: '#0955fa',
-      backgroundUrl: 'assets/test.png',
-      actionColor: '#4CAF50',
-      textColor: '#ffffff',
-    ),
-    ios: const IOSParams(
-      iconName: 'CallKitLogo',
-      handleType: '',
-      supportsVideo: true,
-      maximumCallGroups: 2,
-      maximumCallsPerCallGroup: 1,
-      audioSessionMode: 'default',
-      audioSessionActive: true,
-      audioSessionPreferredSampleRate: 44100.0,
-      audioSessionPreferredIOBufferDuration: 0.005,
-      supportsDTMF: true,
-      supportsHolding: true,
-      supportsGrouping: false,
-      supportsUngrouping: false,
-      ringtonePath: 'system_ringtone_default',
-    ),
-    aurora: const AuroraParams(incoming: true, localHandle: "+79999999999", localName: "Maxim Makarenkov", remoteHandle: "+71234567890", remoteName: "Nail Nuriev", holdable: false, uri: null, status: CallStatus.ringing)
-  );
-  await FlutterCallkitIncoming.showCallkitIncoming(params);
-}
+void main() => runApp(ContactApp());
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MyApp());
-}
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
 
-  @override
-  MyAppState createState() => MyAppState();
-}
+class ContactApp extends StatelessWidget {
+  final List<Contact> contacts = Contact.mockContacts;
 
-class MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  late final Uuid _uuid;
-  String? _currentUuid;
-
-  //late final FirebaseMessaging _firebaseMessaging;
-
-  @override
-  void initState() {
-    super.initState();
-    _uuid = const Uuid();
-    //initFirebase();
-    WidgetsBinding.instance.addObserver(this);
-    //Check call when open app from terminated
-    checkAndNavigationCallingPage();
-  }
-
-  Future<dynamic> getCurrentCall() async {
-    //check current call from pushkit if possible
-    var calls = await FlutterCallkitIncoming.activeCalls();
-    if (calls is List) {
-      if (calls.isNotEmpty) {
-        print('DATA: $calls');
-        _currentUuid = calls[0]['id'];
-        return calls[0];
-      } else {
-        _currentUuid = "";
-        return null;
-      }
-    }
-  }
-
-  Future<void> checkAndNavigationCallingPage() async {
-    var currentCall = await getCurrentCall();
-    if (currentCall != null) {
-      NavigationService.instance.pushNamedIfNotCurrent(AppRoute.callingPage, args: currentCall);
-    }
-  }
-
-  @override
-  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    print(state);
-    if (state == AppLifecycleState.resumed) {
-      //Check call when open app from background
-      checkAndNavigationCallingPage();
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  // Future<void> initFirebase() async {
-  //   await Firebase.initializeApp();
-  //   _firebaseMessaging = FirebaseMessaging.instance;
-  //   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  //   FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-  //     print('Message title: ${message.notification?.title}, body: ${message.notification?.body}, data: ${message.data}');
-  //     _currentUuid = _uuid.v4();
-  //     showCallkitIncoming(_currentUuid!);
-  //   });
-  //   _firebaseMessaging.getToken().then((token) {
-  //     print('Device Token FCM: $token');
-  //   });
-  // }
+  static final String userName = 'Максим';
+  static final String userPhone = '+7 900 000-00-00';
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData.light(),
-      onGenerateRoute: AppRoute.generateRoute,
-      initialRoute: AppRoute.homePage,
-      navigatorKey: NavigationService.instance.navigationKey,
-      navigatorObservers: <NavigatorObserver>[NavigationService.instance.routeObserver],
+      title: 'Контакты',
+      theme: ThemeData(primarySwatch: Colors.teal),
+      home: Scaffold(
+        appBar: AppBar(title: const Text('Контакты')),
+        body: Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.all(12),
+              child: ListTile(
+                leading: const CircleAvatar(
+                  radius: 24,
+                  child: Icon(Icons.person),
+                ),
+                title: Text(userName),
+                subtitle: Text(userPhone),
+                trailing: Text('Контактов: ${contacts.length}'),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: contacts.length,
+                itemBuilder: (context, index) {
+                  final contact = contacts[index];
+                  return ListTile(
+                    leading: const Icon(Icons.person_outline),
+                    title: Text(contact.name),
+                    subtitle: Text(contact.phone),
+                    onTap: () => _callContact(context, contact),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Future<void> getDevicePushTokenVoIP() async {
-    var devicePushTokenVoIP = await FlutterCallkitIncoming.getDevicePushTokenVoIP();
-    print(devicePushTokenVoIP);
+  void _callContact(BuildContext context, Contact contact) {
+    final snackBar = SnackBar(
+      content: Text('Звонок: ${contact.name} (${contact.phone})'),
+      duration: const Duration(seconds: 2),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    debugPrint('Calling ${contact.name} at ${contact.phone}');
   }
 }
+
+  Future<void> requestNotificationPermission() async {
+    await FlutterCallkitIncoming.requestNotificationPermission({
+      "rationaleMessagePermission":
+          "Notification permission is required, to show notification.",
+      "postNotificationMessageRequired":
+          "Notification permission is required, Please allow notification permission from setting."
+    });
+  }
+
+  // Future<dynamic> initCurrentCall() async {
+  //   await requestNotificationPermission();
+  //   //check current call from pushkit if possible
+  //   var calls = await FlutterCallkitIncoming.activeCalls();
+  //   if (calls is List) {
+  //     if (calls.isNotEmpty) {
+  //       print('DATA: $calls');
+  //       _currentUuid = calls[0]['id'];
+  //       return calls[0];
+  //     } else {
+  //       _currentUuid = "";
+  //       return null;
+  //     }
+  //   }
+  // }
+
+  Future<void> makeCall(Contact contact) async {
+
+      final callParams = CallKitParams(
+        id: Uuid().toString(),
+        nameCaller: contact.name,
+        handle: contact.phone,
+        extra: {
+          "userID": contact.id
+        },
+        aurora: const AuroraParams(
+          localName: "Maxim",
+          localHandle: "+7 900 000-00-00",
+          holdable: true,
+          uri: null,
+          status: CallStatus.dialing
+        )
+      );
+      await FlutterCallkitIncoming.showCallkitIncoming(callParams);
+  }
+
+  // Future<void> endCurrentCall() async {
+  //   initCurrentCall();
+  //   await FlutterCallkitIncoming.endCall(_currentUuid!);
+  // }
+
+  // Future<void> startOutGoingCall() async {
+  //   _currentUuid = _uuid.v4();
+  //   final params = CallKitParams(
+  //     id: _currentUuid,
+  //     nameCaller: 'Hien Nguyen',
+  //     handle: '0123456789',
+  //     type: 1,
+  //     extra: <String, dynamic>{'userId': '1a2b3c4d'},
+  //     ios: const IOSParams(handleType: 'number'),
+  //     aurora: const AuroraParams(incoming: false, localHandle: "+79155364844", localName: "Maxim Makarenkov", remoteHandle: "+79991234567", remoteName: "Nail Nuriev", holdable: true, uri: null, status: CallStatus.dialing)
+  //   );
+  //   await FlutterCallkitIncoming.startCall(params);
+  // }
+
+  Future<void> activeCalls() async {
+    var calls = await FlutterCallkitIncoming.activeCalls();
+    print(calls);
+  }
+
+  Future<void> endAllCalls() async {
+    await FlutterCallkitIncoming.endAllCalls();
+  }
+
+  Future<void> getDevicePushTokenVoIP() async {
+    var devicePushTokenVoIP =
+        await FlutterCallkitIncoming.getDevicePushTokenVoIP();
+    print(devicePushTokenVoIP);
+  }

@@ -141,13 +141,19 @@ class FlutterCallkitIncoming {
   }
 
   static CallEvent? _receiveCallEvent(dynamic data) {
+    print("Received Event");
+    print(data);
     Event? event;
     Map<String, dynamic> body = {};
 
     if (data is Map) {
       event = Event.values.firstWhere((e) => e.name == data['event']);
+      print("Event: ${event}");
       body = Map<String, dynamic>.from(data['body']);
+      print("body: ${body}");
       return CallEvent(body, event);
+    } else {
+      print("Is not a map");
     }
     return null;
   }

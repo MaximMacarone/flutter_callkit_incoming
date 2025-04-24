@@ -14,6 +14,9 @@
 #include <QtDBus/qdbusmetatype.h>
 
 #include <cstdint>
+#include <functional>
+
+#include "call_event.h"
 
 #include "dbustypes.h"
 #include "callservice1dbusinterface.h"
@@ -36,6 +39,8 @@ public:
 
     void startIncomingCall(QVariantMap params);
     void startOutgoingCall(QVariantMap params);
+
+    void setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback);
 
 public slots:
     // org.freedesktop.DBus.ObjectManager method
@@ -60,6 +65,8 @@ private:
     //EarpiecePlayer m_earpiecePlayer;
     DBusManagerStruct m_dbusManagedObjects;
     Call1DBusObject::CallStatus m_currentCallStatus;
+
+    std::function<void(const CallEvent::Event event, const QVariantMap&)> m_eventDispatcher;
 
 signals:
     void callManagerRegistered();

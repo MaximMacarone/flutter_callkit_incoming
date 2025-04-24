@@ -10,12 +10,12 @@
 
 #include "include/flutter_callkit_incoming/call1dbusobject.h"
 
-static const QString s_call1ObjectPath = QStringLiteral("/com/hiennv/flutterCallKitIncoming/DBus/Call1");
+static const QString s_call1ObjectPath = QStringLiteral("/com/hiennv/flutter_callkit_incoming_example/DBus/Call1");
 
 Call1DBusObject::Call1DBusObject(QObject *parent) : QObject(parent)
 {
     m_dbusAdaptor = new Call1DBusAdaptor(this);
-    
+
     connect(this, &Call1DBusObject::StatusChanged, m_dbusAdaptor, &Call1DBusAdaptor::StatusChanged);
 }
 
@@ -72,7 +72,7 @@ void Call1DBusObject::registerCall1DBusObject(const bool incoming)
     qInfo() << "Object parent: " << this->parent();
     qInfo() << "MetaObject name: " << this->metaObject()->className();
 
-    if (!QDBusConnection::sessionBus().registerObject(s_call1ObjectPath, this)) {
+    if (!QDBusConnection::sessionBus().registerObject(s_call1ObjectPath, this, QDBusConnection::ExportAdaptors)) {
         QDBusError error = QDBusConnection::sessionBus().lastError();
         qWarning() << error.name();
         qWarning() << error.message();
@@ -81,7 +81,6 @@ void Call1DBusObject::registerCall1DBusObject(const bool incoming)
         return;
     }
     qInfo() << QStringLiteral("DBus-object %1 is registered successfully").arg(s_call1ObjectPath);
-    std::cout << "DBus-object %1 is registered successfully";
     sendStatus(incoming ? Ringing : Dialing);
 }
 
@@ -92,6 +91,6 @@ void Call1DBusObject::unregisterCall1DBusObject()
 
 void Call1DBusObject::sendStatus(const CallStatus status)
 {
-    std::cout << "[Call Dbus object] emit status changed";
+    qInfo() << "Call status changed to: " << status;
     emit StatusChanged(status);
 }

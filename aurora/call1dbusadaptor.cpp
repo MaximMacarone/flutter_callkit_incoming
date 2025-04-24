@@ -14,6 +14,7 @@
 Call1DBusAdaptor::Call1DBusAdaptor(QObject *parent)
     : QDBusAbstractAdaptor(parent), m_call1DBusObject(qobject_cast<Call1DBusObject *>(parent))
 {
+    Q_ASSERT(m_call1DBusObject);
 }
 
 /*!

@@ -33,7 +33,7 @@ std::optional<AuroraParams> ParseAuroraParams(const flutter::EncodableMap& auror
     params.remoteHandle = getStr("remoteHandle").value_or("");
     params.remoteName   = getStr("remoteName").value_or("");
     params.holdable     = getBool("holdable").value_or(false);
-    params.uri          = getStr("uri"); // может быть null, опционально
+    params.uri          = getStr("uri");
     params.status       = getInt("status").value_or(0);
 
     return params;

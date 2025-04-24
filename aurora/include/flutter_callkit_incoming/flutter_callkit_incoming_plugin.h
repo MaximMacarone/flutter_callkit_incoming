@@ -13,6 +13,8 @@
 #include "globals.h"
 #include "callmanager.h"
 #include "aurora_params.h"
+#include "call_event.h"
+#include "utils.h"
 
 // Flutter encodable
 typedef flutter::EncodableValue EncodableValue;
@@ -20,8 +22,11 @@ typedef flutter::EncodableMap EncodableMap;
 typedef flutter::EncodableList EncodableList;
 // Flutter methods
 typedef flutter::MethodChannel<EncodableValue> MethodChannel;
+typedef flutter::EventChannel<EncodableValue> EventChannel;
+typedef flutter::EventSink<EncodableValue> EventSink;
 typedef flutter::MethodCall<EncodableValue> MethodCall;
 typedef flutter::MethodResult<EncodableValue> MethodResult;
+typedef flutter::StreamHandlerFunctions<EncodableValue> StreamHandlerFunctions;
 
 class PLUGIN_EXPORT FlutterCallkitIncomingPlugin final : public flutter::Plugin
 {
@@ -30,8 +35,8 @@ public:
 
     // Creates a plugin that communicates on the given channel.
     FlutterCallkitIncomingPlugin(
-        std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> methodChannel,
-        std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> eventChannel
+        std::unique_ptr<MethodChannel> methodChannel,
+        std::unique_ptr<EventChannel> eventChannel
     );
 
 private:
@@ -41,10 +46,10 @@ private:
     void RegisterEventChannel();
 
     // Methods MethodCall
-    EncodableValue onStartIncomingCall(const EncodableValue flutterParams, std::unique_ptr<MethodResult> result);
+    EncodableValue onShowCallkitIncoming(const EncodableValue* call_arguments);
     EncodableValue onShowMissCallNotification();
-    EncodableValue onHideCallKitIncoming();
-    EncodableValue onStartCall();
+    EncodableValue onHideCallkitIncoming();
+    EncodableValue onStartCall(const EncodableValue* call_arguments);
     EncodableValue onMuteCall();
     EncodableValue onIsMuted();
     EncodableValue onHoldCall();
@@ -60,12 +65,17 @@ private:
 
     // Variables
     std::unique_ptr<MethodChannel> m_methodChannel;
-    std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> m_eventChannel;
-    std::unique_ptr<flutter::StreamHandlerFunctions<flutter::EncodableValue>> m_streamHandler;
-    flutter::EventSink<flutter::EncodableValue>* m_eventSink = nullptr;
+    std::unique_ptr<EventChannel> m_eventChannel;
+    std::unique_ptr<StreamHandlerFunctions> m_streamHandler;
+    EventSink* m_eventSink = nullptr;
     std::unique_ptr<CallManager> m_callManager;
 
-    //Utility
+    //Event channel
+    void sendCallEvent(
+        const CallEvent::Event event,
+        const EncodableMap& body
+    );
+
 };
 
 #endif /* FLUTTER_PLUGIN_FLUTTER_CALLKIT_INCOMING_PLUGIN_H */
