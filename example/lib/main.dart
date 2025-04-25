@@ -20,6 +20,8 @@ class _ContactAppState extends State<ContactApp> {
   static final String userName = 'Максим';
   static final String userPhone = '+7 900 000-00-00';
 
+  Map<String, dynamic>? _activeCall;
+
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   StreamSubscription<CallEvent?>? _callSub;
 
@@ -116,6 +118,22 @@ class _ContactAppState extends State<ContactApp> {
                 onTap: _startIncomingCall,
               ),
             ),
+            ElevatedButton.icon(
+              onPressed: _showActiveCall,
+              icon: const Icon(Icons.call),
+              label: const Text('Показать активный звонок'),
+            ),
+            if (_activeCall != null)
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                color: Colors.green.shade50,
+                child: ListTile(
+                  leading: const Icon(Icons.call),
+                  title: Text(_activeCall!['nameCaller'] ?? 'Неизвестно'),
+                  subtitle: Text(_activeCall!['handle'] ?? ''),
+                  trailing: const Text('Активный'),
+                ),
+              ),
             Expanded(
               child: ListView.builder(
                 itemCount: contacts.length,
@@ -137,7 +155,7 @@ class _ContactAppState extends State<ContactApp> {
   }
 
   void _callContact(Contact contact) {
-    //_showSnackbar('Звонок: ${contact.name} (${contact.phone})');
+    _showSnackbar('Звонок: ${contact.name} (${contact.phone})');
     debugPrint('Calling ${contact.name} at ${contact.phone}');
     _makeCall(contact);
   }
@@ -156,6 +174,26 @@ class _ContactAppState extends State<ContactApp> {
       ),
     );
     FlutterCallkitIncoming.startCall(params);
+  }
+
+    void _showActiveCall() async {
+    try {
+      final calls = await FlutterCallkitIncoming.activeCalls();
+      debugPrint('Active calls: $calls');
+
+      if (calls is List && calls.isNotEmpty) {
+        setState(() {
+          _activeCall = Map<String, dynamic>.from(calls.first);
+        });
+        _showSnackbar('Найден активный звонок');
+      } else {
+        setState(() => _activeCall = null);
+        _showSnackbar('Нет активных звонков');
+      }
+    } catch (e) {
+      debugPrint('Ошибка при получении активных звонков: $e');
+      _showSnackbar('Ошибка при получении звонков');
+    }
   }
 
   void _startIncomingCall() {

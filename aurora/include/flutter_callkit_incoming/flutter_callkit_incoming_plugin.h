@@ -39,6 +39,9 @@ public:
         std::unique_ptr<EventChannel> eventChannel
     );
 
+    //Utility
+    EncodableValue QVariantToEncodableValue(const QVariant& value);
+
 private:
 
     // Methods register handlers channels

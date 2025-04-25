@@ -10,6 +10,7 @@
 #include <QVariantMap>
 #include <flutter/encodable_value.h>
 #include <flutter/standard_method_codec.h>
+#include "dbustypes.h"
 
 struct AuroraParams {
     QString localHandle;
@@ -19,6 +20,7 @@ struct AuroraParams {
     int status = 0;
   
     QString id;
+    QString appName;
     QString nameCaller;
     QString handle;
     QMap<QString, QVariant> extra;
@@ -26,4 +28,5 @@ struct AuroraParams {
     static AuroraParams fromEncodableMap(const flutter::EncodableMap& map);
     static AuroraParams fromEncodableValue(const flutter::EncodableValue& value);
     QVariantMap toQVariantMap() const;
+    static flutter::EncodableList toCallkitParams(DBusManagerStruct managedObjects);
 };

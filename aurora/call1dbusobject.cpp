@@ -10,7 +10,7 @@
 
 #include "include/flutter_callkit_incoming/call1dbusobject.h"
 
-static const QString s_call1ObjectPath = QStringLiteral("/com/hiennv/flutter_callkit_incoming_example/DBus/Call1");
+static const QString s_call1ObjectPath = QStringLiteral("/com/hiennv/AppName/DBus/Call1");
 
 Call1DBusObject::Call1DBusObject(QObject *parent) : QObject(parent)
 {
@@ -93,4 +93,8 @@ void Call1DBusObject::sendStatus(const CallStatus status)
 {
     qInfo() << "Call status changed to: " << status;
     emit StatusChanged(status);
+}
+
+void Call1DBusObject::setAppName(QString name) {
+
 }

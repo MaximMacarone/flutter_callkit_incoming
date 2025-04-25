@@ -43,10 +43,12 @@ AuroraParams AuroraParams::fromEncodableMap(const flutter::EncodableMap& map) {
     params.id = getString("id");
     params.nameCaller = getString("nameCaller");
     params.handle = getString("handle");
+    params.appName = getString("appName");
 
     auto extraIt = map.find(flutter::EncodableValue("extra"));
     if (extraIt != map.end() && std::holds_alternative<flutter::EncodableMap>(extraIt->second)) {
       const auto& extraMap = std::get<flutter::EncodableMap>(extraIt->second);
+
       for (const auto& [key, value] : extraMap) {
         if (std::holds_alternative<std::string>(key)) {
           QString k = QString::fromStdString(std::get<std::string>(key));
@@ -54,6 +56,8 @@ AuroraParams AuroraParams::fromEncodableMap(const flutter::EncodableMap& map) {
             params.extra[k] = QString::fromStdString(std::get<std::string>(value));
           } else if (std::holds_alternative<int64_t>(value)) {
             params.extra[k] = static_cast<qint64>(std::get<int64_t>(value));
+          } else if (std::holds_alternative<int>(value)) {
+            params.extra[k] = static_cast<qint64>(std::get<int>(value));
           } else if (std::holds_alternative<bool>(value)) {
             params.extra[k] = std::get<bool>(value);
           }
@@ -79,7 +83,6 @@ AuroraParams AuroraParams::fromEncodableValue(const flutter::EncodableValue& val
     if (it != fullMap.end() && std::holds_alternative<flutter::EncodableMap>(it->second)) {
         auroraMap = std::get<flutter::EncodableMap>(it->second);
 
-        // Добавляем общие поля из верхнего уровня
         for (const auto& key : {"id", "nameCaller", "handle", "extra"}) {
             auto outerIt = fullMap.find(flutter::EncodableValue(key));
             if (outerIt != fullMap.end()) {
@@ -108,6 +111,64 @@ QVariantMap AuroraParams::toQVariantMap() const {
     map["RemoteName"] = nameCaller;
     map["RemoteHandle"] = handle;
     map["Extra"] = extra;
+    map["AppName"] = appName;
 
     return map;
+}
+
+flutter::EncodableList AuroraParams::toCallkitParams(DBusManagerStruct managedObjects) {
+
+  flutter::EncodableList out;
+  for (auto it = managedObjects.constBegin(); it != managedObjects.constEnd(); ++it) {
+    const QDBusObjectPath& path        = it.key();
+    const VariantMapMap&   ifaces      = it.value();
+
+    auto itIface = ifaces.find(QStringLiteral("ru.auroraos.Call.Call1"));
+    if (itIface == ifaces.end()) continue;
+
+    QVariantMap props = itIface.value();
+
+    flutter::EncodableMap json;
+
+    json[flutter::EncodableValue("id")] = flutter::EncodableValue(props.value("Id").toString().toStdString());
+    json[flutter::EncodableValue("nameCaller")] = flutter::EncodableValue(props.value("RemoteName").toString().toStdString());
+    json[flutter::EncodableValue("handle")] = flutter::EncodableValue(props.value("RemoteHandle").toString().toStdString());
+
+    // extra
+    flutter::EncodableMap extra;
+    for (auto const& k : props.value("Extra").toMap().keys()) {
+      QVariant v = props.value("Extra").toMap().value(k);
+      if (v.type() == QVariant::String) {
+        extra[flutter::EncodableValue(k.toStdString())] = flutter::EncodableValue(v.toString().toStdString());
+      } else if (v.type() == QVariant::Bool) {
+        extra[flutter::EncodableValue(k.toStdString())] = flutter::EncodableValue(v.toBool());
+      } else if (v.canConvert<int>()) {
+        extra[flutter::EncodableValue(k.toStdString())] = flutter::EncodableValue(v.toInt());
+      }
+    }
+    json[flutter::EncodableValue("extra")] = flutter::EncodableValue(extra);
+
+    flutter::EncodableMap aurora;
+    aurora[flutter::EncodableValue("localName")] = flutter::EncodableValue(props.value("LocalName").toString().toStdString());
+    aurora[flutter::EncodableValue("localHandle")] = flutter::EncodableValue(props.value("LocalHandle").toString().toStdString());
+    aurora[flutter::EncodableValue("holdable")] = flutter::EncodableValue(props.value("Holdable").toBool());
+
+    aurora[flutter::EncodableValue("uri")] = flutter::EncodableValue(); // null
+    json[flutter::EncodableValue("aurora")] = flutter::EncodableValue(aurora);
+
+    json[flutter::EncodableValue("appName")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("avatar")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("type")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("normalHandle")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("duration")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("textAccept")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("textDecline")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("missedCallNotification")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("headers")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("android")] = flutter::EncodableValue();
+    json[flutter::EncodableValue("ios")] = flutter::EncodableValue();
+
+    out.push_back(flutter::EncodableValue(json));
+  }
+  return out;
 }

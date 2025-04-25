@@ -9,7 +9,7 @@
 #include "include/flutter_callkit_incoming/callmanager.h"
 
 static const QString s_callManagerObjectPath =
-        QStringLiteral("/com/hiennv/flutter_callkit_incoming_example/DBus/ObjectManager");
+        QStringLiteral("/com/hiennv/FlutterCallkitIncoming/DBus/ObjectManager");
 static const int s_answerInterval = 10 * 1000;
 
 CallManager::CallManager(QObject *parent) : QObject(parent)
@@ -60,6 +60,7 @@ void CallManager::registerCallManager()
 void CallManager::registerCall1DBusObject(QVariantMap params, bool incoming)
 {
     m_call1DBusObject.registerCall1DBusObject(incoming);
+    //m_call1DBusObject.
     m_dbusManagedObjects[m_call1DBusObject.objectPath()] =
             VariantMapMap{ { "ru.auroraos.Call.Call1", params } };
     emit InterfacesAdded(m_call1DBusObject.objectPath(),
@@ -70,6 +71,7 @@ void CallManager::startIncomingCall(QVariantMap params)
 {
     params["Status"] = Call1DBusObject::Ringing;
     registerCall1DBusObject(params, true);
+    GetManagedObjects();
 }
 
 void CallManager::startOutgoingCall(QVariantMap params)
@@ -79,6 +81,7 @@ void CallManager::startOutgoingCall(QVariantMap params)
     m_answerTimer.setSingleShot(true);
     m_answerTimer.setInterval(s_answerInterval);
     m_answerTimer.start();
+    GetManagedObjects();
 }
 
 DBusManagerStruct CallManager::GetManagedObjects()

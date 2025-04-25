@@ -66,11 +66,8 @@ FlutterCallkitIncomingPlugin::FlutterCallkitIncomingPlugin(
 void FlutterCallkitIncomingPlugin::RegisterMethodHandler() {
   m_methodChannel->SetMethodCallHandler(
     [this](const MethodCall &call, std::unique_ptr<MethodResult> result) {
-
-      
-
+      const flutter::EncodableValue* args_ptr = call.arguments();
       if (call.method_name().compare(Methods::ShowCallkitIncoming) == 0) {
-        const flutter::EncodableValue* args_ptr = call.arguments();
 
         result->Success(onShowCallkitIncoming(args_ptr));
         return;
@@ -80,7 +77,6 @@ void FlutterCallkitIncomingPlugin::RegisterMethodHandler() {
       } else if (call.method_name().compare(Methods::HideCallkitIncoming) == 0) {
         return;
       } else if (call.method_name().compare(Methods::StartCall) == 0) {
-        const flutter::EncodableValue* args_ptr = call.arguments();
 
         result->Success(onStartCall(args_ptr));
         return;
@@ -104,8 +100,10 @@ void FlutterCallkitIncomingPlugin::RegisterMethodHandler() {
         result->Success();
         return;
       } else if (call.method_name().compare(Methods::ActiveCalls) == 0) {
-        result->Success();
+
+        result->Success(onActiveCalls());
         return;
+
       } else if (call.method_name().compare(Methods::GetDevicePushTokenVoIP) == 0) {
         result->Success();
         return;
@@ -175,4 +173,12 @@ EncodableValue FlutterCallkitIncomingPlugin::onStartCall(const EncodableValue *c
   qInfo() << variantParams;
   m_callManager->startOutgoingCall(variantParams);
   return EncodableValue("OK");
+}
+
+EncodableValue FlutterCallkitIncomingPlugin::onActiveCalls() {
+  DBusManagerStruct managedObjects = m_callManager->GetManagedObjects();
+
+  const auto callkitJSON = AuroraParams::toCallkitParams(managedObjects);
+
+  return callkitJSON;
 }

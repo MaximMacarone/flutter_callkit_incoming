@@ -38,6 +38,7 @@ public:
     void registerCall1DBusObject(const bool incoming);
     void unregisterCall1DBusObject();
     void sendStatus(const CallStatus status);
+    void setAppName(QString name);
 
 public slots:
     // ru.auroraos.Call.Call1 methods
