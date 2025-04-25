@@ -25,24 +25,6 @@ constexpr auto RequestNotificationPermission = "requestNotificationPermission";
 constexpr auto RequestFullIntentPermission = "requestFullIntentPermission";
 } // namespace Methods
 
-  /// Listen to event callback from [FlutterCallkitIncoming].
-  ///
-  /// FlutterCallkitIncoming.onEvent.listen((event) {
-  /// Event.ACTION_CALL_INCOMING - Received an incoming call
-  /// Event.ACTION_CALL_START - Started an outgoing call
-  /// Event.ACTION_CALL_ACCEPT - Accepted an incoming call
-  /// Event.ACTION_CALL_DECLINE - Declined an incoming call
-  /// Event.ACTION_CALL_ENDED - Ended an incoming/outgoing call
-  /// Event.ACTION_CALL_TIMEOUT - Missed an incoming call
-  /// Event.ACTION_CALL_CALLBACK - only Android (click action `Call back` from missed call notification)
-  /// Event.ACTION_CALL_TOGGLE_HOLD - only iOS
-  /// Event.ACTION_CALL_TOGGLE_MUTE - only iOS
-  /// Event.ACTION_CALL_TOGGLE_DMTF - only iOS
-  /// Event.ACTION_CALL_TOGGLE_GROUP - only iOS
-  /// Event.ACTION_CALL_TOGGLE_AUDIO_SESSION - only iOS
-  /// Event.DID_UPDATE_DEVICE_PUSH_TOKEN_VOIP - only iOS
-  /// }
-
 void FlutterCallkitIncomingPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrar *registrar) {
   auto methodChannel = std::make_unique<MethodChannel>(
@@ -83,49 +65,65 @@ FlutterCallkitIncomingPlugin::FlutterCallkitIncomingPlugin(
 
 void FlutterCallkitIncomingPlugin::RegisterMethodHandler() {
   m_methodChannel->SetMethodCallHandler(
-      [this](const MethodCall &call, std::unique_ptr<MethodResult> result) {
-        if (call.method_name().compare(Methods::ShowCallkitIncoming) == 0) {
+    [this](const MethodCall &call, std::unique_ptr<MethodResult> result) {
 
-          const EncodableValue* args_ptr = call.arguments();
+      
 
-          result->Success(FlutterCallkitIncomingPlugin::onShowCallkitIncoming(args_ptr));
+      if (call.method_name().compare(Methods::ShowCallkitIncoming) == 0) {
+        const flutter::EncodableValue* args_ptr = call.arguments();
 
-        } else if (call.method_name().compare(Methods::ShowMissCallNotification) == 0) {
+        result->Success(onShowCallkitIncoming(args_ptr));
+        return;
 
-        } else if (call.method_name().compare(Methods::HideCallkitIncoming) == 0) {
+      } else if (call.method_name().compare(Methods::ShowMissCallNotification) == 0) {
+        return;
+      } else if (call.method_name().compare(Methods::HideCallkitIncoming) == 0) {
+        return;
+      } else if (call.method_name().compare(Methods::StartCall) == 0) {
+        const flutter::EncodableValue* args_ptr = call.arguments();
 
-        } else if (call.method_name().compare(Methods::StartCall) == 0) {
+        result->Success(onStartCall(args_ptr));
+        return;
 
-          const EncodableValue* args_ptr = call.arguments();
-
-          result->Success(FlutterCallkitIncomingPlugin::onStartCall(args_ptr));
-
-        } else if (call.method_name().compare(Methods::MuteCall) == 0) {
-
-        } else if (call.method_name().compare(Methods::IsMuted) == 0) {
-
-        } else if (call.method_name().compare(Methods::HoldCall) == 0) {
-
-        } else if (call.method_name().compare(Methods::EndCall) == 0) {
-
-        } else if (call.method_name().compare(Methods::SetCallConnected) == 0) {
-
-        } else if (call.method_name().compare(Methods::EndAllCalls) == 0) {
-
-        } else if (call.method_name().compare(Methods::ActiveCalls) == 0) {
-
-        } else if (call.method_name().compare(Methods::GetDevicePushTokenVoIP) == 0) {
-
-        } else if (call.method_name().compare(Methods::SilenceEvents) == 0) {
-
-        } else if (call.method_name().compare(Methods::RequestNotificationPermission) == 0) {
-
-        } else if (call.method_name().compare(Methods::RequestFullIntentPermission) == 0) {
-
-        } else {
-          result->Success();
-        }
-	    });
+      } else if (call.method_name().compare(Methods::MuteCall) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::IsMuted) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::HoldCall) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::EndCall) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::SetCallConnected) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::EndAllCalls) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::ActiveCalls) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::GetDevicePushTokenVoIP) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::SilenceEvents) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::RequestNotificationPermission) == 0) {
+        result->Success();
+        return;
+      } else if (call.method_name().compare(Methods::RequestFullIntentPermission) == 0) {
+        result->Success();
+        return;
+      } else {
+        result->Success();
+        return;
+      }
+    }
+  );
 }
 
 void FlutterCallkitIncomingPlugin::RegisterEventChannel() {
@@ -152,47 +150,29 @@ void FlutterCallkitIncomingPlugin::sendCallEvent(
   flutter::EncodableMap msg;
   msg[flutter::EncodableValue("event")] = flutter::EncodableValue(CallEvent::toString(event).toStdString());
   msg[flutter::EncodableValue("body")] = body;
+  qInfo() << "Sending Event";
   m_eventSink->Success(flutter::EncodableValue(msg));
 }
 
-EncodableValue FlutterCallkitIncomingPlugin::onShowCallkitIncoming(const EncodableValue* call_arguments) {
-  if (std::holds_alternative<EncodableMap>(*call_arguments)) {
-    const auto& rootMap = std::get<EncodableMap>(*call_arguments);
-    auto it = rootMap.find(EncodableValue("aurora"));
-    if (it != rootMap.end() && std::holds_alternative<EncodableMap>(it->second)) {
-      const auto& auroraMap = std::get<EncodableMap>(it->second);
-      std::optional<AuroraParams> auroraParams = ParseAuroraParams(auroraMap);
-      if (auroraParams) {
-        m_callManager->startIncomingCall(auroraParams->toVariantMap());
-        return(EncodableValue("OK"));
-      } else {
-        return(EncodableValue("Aurora parsing failed"));
-      }
-    } else {
-      return(EncodableValue("No 'aurora' field or it is not a map"));
-    }
-  } else {
-    return(EncodableValue("Invalid argument format"));
+EncodableValue FlutterCallkitIncomingPlugin::onShowCallkitIncoming(const EncodableValue *call_arguments) {
+  if (!call_arguments) {
+    return EncodableValue("Invalid arguments, expected EncodableValue with a Map");
   }
+  AuroraParams params = AuroraParams::fromEncodableValue(*call_arguments);
+  QVariantMap variantParams = params.toQVariantMap();
+  qInfo() << variantParams;
+  m_callManager->startIncomingCall(variantParams);
+  return EncodableValue("OK");
 }
 
-EncodableValue FlutterCallkitIncomingPlugin::onStartCall(const EncodableValue* call_arguments) {
-  if (std::holds_alternative<EncodableMap>(*call_arguments)) {
-    const auto& rootMap = std::get<EncodableMap>(*call_arguments);
-    auto it = rootMap.find(EncodableValue("aurora"));
-    if (it != rootMap.end() && std::holds_alternative<EncodableMap>(it->second)) {
-      const auto& auroraMap = std::get<EncodableMap>(it->second);
-      std::optional<AuroraParams> auroraParams = ParseAuroraParams(auroraMap);
-      if (auroraParams) {
-        m_callManager->startOutgoingCall(auroraParams->toVariantMap());
-        return(EncodableValue("OK"));
-      } else {
-        return(EncodableValue("Aurora parsing failed"));
-      }
-    } else {
-      return(EncodableValue("No 'aurora' field or it is not a map"));
-    }
-  } else {
-    return(EncodableValue("Invalid argument format"));
+EncodableValue FlutterCallkitIncomingPlugin::onStartCall(const EncodableValue *call_arguments) {
+  if (!call_arguments) {
+    return EncodableValue("Invalid arguments, expected EncodableValue with a Map");
   }
+
+  AuroraParams params = AuroraParams::fromEncodableValue(*call_arguments);
+  QVariantMap variantParams = params.toQVariantMap();
+  qInfo() << variantParams;
+  m_callManager->startOutgoingCall(variantParams);
+  return EncodableValue("OK");
 }

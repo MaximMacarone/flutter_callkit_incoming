@@ -141,8 +141,6 @@ class FlutterCallkitIncoming {
   }
 
   static CallEvent? _receiveCallEvent(dynamic data) {
-    print("Received Event");
-    print(data);
     Event? event;
     Map<String, dynamic> body = {};
 

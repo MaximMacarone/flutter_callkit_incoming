@@ -57,10 +57,9 @@ void CallManager::registerCallManager()
     callService1.registerCallManager(s_callManagerObjectPath);
 }
 
-void CallManager::registerCall1DBusObject(QVariantMap params)
+void CallManager::registerCall1DBusObject(QVariantMap params, bool incoming)
 {
-    params.insert("id", "123");
-    m_call1DBusObject.registerCall1DBusObject(params.value("Incoming").toBool());
+    m_call1DBusObject.registerCall1DBusObject(incoming);
     m_dbusManagedObjects[m_call1DBusObject.objectPath()] =
             VariantMapMap{ { "ru.auroraos.Call.Call1", params } };
     emit InterfacesAdded(m_call1DBusObject.objectPath(),
@@ -69,12 +68,14 @@ void CallManager::registerCall1DBusObject(QVariantMap params)
 
 void CallManager::startIncomingCall(QVariantMap params)
 {
-    registerCall1DBusObject(params);
+    params["Status"] = Call1DBusObject::Ringing;
+    registerCall1DBusObject(params, true);
 }
 
 void CallManager::startOutgoingCall(QVariantMap params)
 {
-    registerCall1DBusObject(params);
+    params["Status"] = Call1DBusObject::Dialing;
+    registerCall1DBusObject(params, false);
     m_answerTimer.setSingleShot(true);
     m_answerTimer.setInterval(s_answerInterval);
     m_answerTimer.start();
@@ -87,7 +88,7 @@ DBusManagerStruct CallManager::GetManagedObjects()
     qInfo() << "Managed D-Bus Objects:";
 
     for (const QDBusObjectPath &objectPath : m_dbusManagedObjects.keys()) {
-        qInfo() << "Object Path:" << objectPath.path();  // <-- Явное преобразование
+        qInfo() << "Object Path:" << objectPath.path();
 
         const VariantMapMap &interfaces = m_dbusManagedObjects[objectPath];
 
@@ -183,6 +184,7 @@ void CallManager::handleCallStatusChanged(const uint32_t status)
         
         break;
     case Call1DBusObject::Rejecting:
+        m_eventDispatcher(CallEvent::ACTION_CALL_DECLINE, body);
         break;
     case Call1DBusObject::Accepting:
 
@@ -190,26 +192,17 @@ void CallManager::handleCallStatusChanged(const uint32_t status)
 
         break;
     case Call1DBusObject::Active:
+        
+        m_eventDispatcher(CallEvent::ACTION_CALL_START, body);
 
         break;
     case Call1DBusObject::Held:
-        
+        m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, body);
         break;
     default:
         break;
     }
 }
-
-enum CallStatus {
-    Unknown = 0,
-    Disconnected,
-    Dialing,
-    Ringing,
-    Rejecting,
-    Accepting,
-    Active,
-    Held
-};
 
 void CallManager::setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback) {
     m_eventDispatcher = std::move(callback);

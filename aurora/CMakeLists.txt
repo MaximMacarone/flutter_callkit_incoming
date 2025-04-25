@@ -36,6 +36,7 @@ set(HEADERS
     include/flutter_callkit_incoming/globals.h
     include/flutter_callkit_incoming/call_event.h
     include/flutter_callkit_incoming/utils.h
+    include/flutter_callkit_incoming/flutter_callkit_incoming_plugin.h
 )
 
 set(SOURCES

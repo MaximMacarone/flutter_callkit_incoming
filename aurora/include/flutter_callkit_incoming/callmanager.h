@@ -35,7 +35,7 @@ public:
     ~CallManager();
 
     void registerCallManager();
-    void registerCall1DBusObject(QVariantMap params);
+    void registerCall1DBusObject(QVariantMap params, bool incoming);
 
     void startIncomingCall(QVariantMap params);
     void startOutgoingCall(QVariantMap params);

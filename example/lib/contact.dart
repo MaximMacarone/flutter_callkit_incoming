@@ -10,22 +10,22 @@ class Contact {
 
   static final mockContacts =  [
     Contact(
-      id: Uuid().toString(),
+      id: Uuid().v4().toString(),
       name: 'Алиса',
       phone: '+7 900 111-22-33'
 
       ),
     Contact(
-      id: Uuid().toString(),
+      id: Uuid().v4().toString(),
       name: 'Боб',
       phone: '+7 900 222-33-44'
       ),
     Contact(
-      id: Uuid().toString(),
+      id: Uuid().v4().toString(),
       name: 'Чарли',
       phone: '+7 900 333-44-55'),
     Contact(
-      id: Uuid().toString(),
+      id: Uuid().v4().toString(),
       name: 'Дейв',
       phone: '+7 900 444-55-66'),
   ];
