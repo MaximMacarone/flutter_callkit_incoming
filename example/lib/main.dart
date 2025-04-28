@@ -3,9 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:flutter_callkit_incoming_example/call_event_manager.dart';
+import 'package:flutter_callkit_incoming_example/navigation_service.dart';
 import 'package:uuid/uuid.dart';
 
 import 'contact.dart';
+import 'incoming_screen.dart';
+import 'active_call_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() => runApp(ContactApp());
 
@@ -24,68 +30,22 @@ class _ContactAppState extends State<ContactApp> {
 
   final _messengerKey = GlobalKey<ScaffoldMessengerState>();
   StreamSubscription<CallEvent?>? _callSub;
+  final NavigationService _navigationService = NavigationService();
 
   @override
   void initState() {
     super.initState();
-    _callSub = FlutterCallkitIncoming.onEvent.listen(_onCallEvent);
+    print("created main state");
+    CallEventManager().init(
+      navigationService: _navigationService,
+      onShowSnackbar: _showSnackbar,
+    );
   }
 
   @override
   void dispose() {
     _callSub?.cancel();
     super.dispose();
-  }
-
-  void _onCallEvent(CallEvent? event) {
-    if (event == null) return;
-    debugPrint('Received call event: $event');
-    switch (event.event) {
-      case Event.actionCallAccept:
-        _showSnackbar('Вызов принят');
-        break;
-      case Event.actionCallDecline:
-        _showSnackbar('Вызов отклонён');
-        break;
-      case Event.actionCallEnded:
-        _showSnackbar('Вызов завершён');
-        break;
-      case Event.actionDidUpdateDevicePushTokenVoip:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallIncoming:
-        _showSnackbar('Входящий вызов');
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallStart:
-        _showSnackbar('Начат вызов');
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallTimeout:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallCallback:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallToggleHold:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallToggleMute:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallToggleDmtf:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallToggleGroup:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallToggleAudioSession:
-        // TODO: Handle this case.
-        break;
-      case Event.actionCallCustom:
-        // TODO: Handle this case.
-        break;
-    }
   }
 
   void _showSnackbar(String text) {
@@ -99,58 +59,85 @@ class _ContactAppState extends State<ContactApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       scaffoldMessengerKey: _messengerKey,
+      navigatorKey: _navigationService.navigatorKey,
       title: 'Контакты',
       theme: ThemeData(primarySwatch: Colors.teal),
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Контакты')),
-        body: Column(
-          children: [
-            Card(
-              margin: const EdgeInsets.all(12),
-              child: ListTile(
-                leading: const CircleAvatar(
-                  radius: 24,
-                  child: Icon(Icons.person),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/incoming_call':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (_) => IncomingCallScreen(
+                name: args['nameCaller'],
+                phone: args['handle'],
+                callId: args['id'],
+              ),
+            );
+          case '/active_call':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (_) => ActiveCallScreen(
+                name: args['nameCaller'],
+                phone: args['handle'],
+                callId: args['id'],
+              ),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (_) =>
+              Scaffold(
+                appBar: AppBar(title: const Text('Контакты')),
+                body: Column(
+                  children: [
+                    Card(
+                      margin: const EdgeInsets.all(12),
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          radius: 24,
+                          child: Icon(Icons.person),
+                        ),
+                        title: Text(userName),
+                        subtitle: Text(userPhone),
+                        trailing: Text('Контактов: ${contacts.length}'),
+                        onTap: _startIncomingCall,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _showActiveCall,
+                      icon: const Icon(Icons.call),
+                      label: const Text('Показать активный звонок'),
+                    ),
+                    if (_activeCall != null)
+                      Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        color: Colors.green.shade50,
+                        child: ListTile(
+                          leading: const Icon(Icons.call),
+                          title: Text(_activeCall!['nameCaller'] ?? 'Неизвестно'),
+                          subtitle: Text(_activeCall!['handle'] ?? ''),
+                          trailing: const Text('Активный'),
+                        ),
+                      ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: contacts.length,
+                        itemBuilder: (context, index) {
+                          final contact = contacts[index];
+                          return ListTile(
+                            leading: const Icon(Icons.person_outline),
+                            title: Text(contact.name),
+                            subtitle: Text(contact.phone),
+                            onTap: () => _callContact(contact),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                title: Text(userName),
-                subtitle: Text(userPhone),
-                trailing: Text('Контактов: ${contacts.length}'),
-                onTap: _startIncomingCall,
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: _showActiveCall,
-              icon: const Icon(Icons.call),
-              label: const Text('Показать активный звонок'),
-            ),
-            if (_activeCall != null)
-              Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                color: Colors.green.shade50,
-                child: ListTile(
-                  leading: const Icon(Icons.call),
-                  title: Text(_activeCall!['nameCaller'] ?? 'Неизвестно'),
-                  subtitle: Text(_activeCall!['handle'] ?? ''),
-                  trailing: const Text('Активный'),
-                ),
-              ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: contacts.length,
-                itemBuilder: (context, index) {
-                  final contact = contacts[index];
-                  return ListTile(
-                    leading: const Icon(Icons.person_outline),
-                    title: Text(contact.name),
-                    subtitle: Text(contact.phone),
-                    onTap: () => _callContact(contact),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+              ), // твой главный экран
+            );
+        }
+      },
     );
   }
 

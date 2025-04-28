@@ -75,7 +75,8 @@
         "span": "cpp",
         "sstream": "cpp",
         "cinttypes": "cpp",
-        "qjsonobject": "cpp"
+        "qjsonobject": "cpp",
+        "qdbusabstractadaptor": "cpp"
     },
     "cmake.ignoreCMakeListsMissing": true
 }

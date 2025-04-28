@@ -55,7 +55,7 @@ private:
     EncodableValue onStartCall(const EncodableValue* call_arguments);
     EncodableValue onMuteCall();
     EncodableValue onIsMuted();
-    EncodableValue onHoldCall();
+    EncodableValue onHoldCall(const EncodableValue *call_arguments);
     EncodableValue onEndCall();
     EncodableValue onSetCallConnected();
     EncodableValue onEndAllCalls();

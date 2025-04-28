@@ -32,20 +32,25 @@ QDBusObjectPath Call1DBusObject::objectPath()
 void Call1DBusObject::Accept()
 {
     qInfo() << QStringLiteral("Call1DBusObject::%1() called").arg(__func__);
+    m_params.status = Accepting;
     sendStatus(Accepting);
+    m_params.status = Active;
     sendStatus(Active);
 }
 
 void Call1DBusObject::Reject(const uint32_t reason)
 {
     qInfo() << QStringLiteral("Call1DBusObject::%1(%2) called").arg(__func__).arg(reason);
+    m_params.status = Rejecting;
     sendStatus(Rejecting);
+    m_params.status = Disconnected;
     sendStatus(Disconnected);
 }
 
 void Call1DBusObject::SetHold(const bool hold)
 {
     qInfo() << QStringLiteral("Call1DBusObject::%1(%2) called").arg(__func__).arg(hold);
+    m_params.status = hold ? Call1DBusObject::Held : Call1DBusObject::Active;
     sendStatus(hold ? Held : Active);
 }
 
@@ -95,6 +100,10 @@ void Call1DBusObject::sendStatus(const CallStatus status)
     emit StatusChanged(status);
 }
 
-void Call1DBusObject::setAppName(QString name) {
+void Call1DBusObject::setParams(AuroraParams params) {
+    m_params = params;
+}
 
+AuroraParams Call1DBusObject::getParams() {
+    return m_params;
 }

@@ -35,10 +35,14 @@ public:
     ~CallManager();
 
     void registerCallManager();
-    void registerCall1DBusObject(QVariantMap params, bool incoming);
+    void registerCall1DBusObject(AuroraParams params, bool incoming);
 
-    void startIncomingCall(QVariantMap params);
-    void startOutgoingCall(QVariantMap params);
+    void startIncomingCall(AuroraParams params);
+    void startOutgoingCall(AuroraParams params);
+
+    void setHold(bool isHold);
+    void setActive();
+    void endCurrentCall();
 
     void setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback);
 

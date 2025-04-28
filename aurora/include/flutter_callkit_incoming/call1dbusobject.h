@@ -8,14 +8,12 @@
 #include <QtDBus/QDBusContext>
 #include <QtDBus/QDBusObjectPath>
 
+#include "aurora_params.h"
+
 class Call1DBusAdaptor;
 
-/*!
- * \brief Call1DBusObject class is an object that implements the ru.auroraos.Call.Call1
- * interface: https://developer.auroraos.ru/doc/5.0.0/software_development/reference/call_api/call1.
- */
-class Call1DBusObject : public QObject, public QDBusContext
-{
+class Call1DBusObject : public QObject, public QDBusContext {
+
     Q_OBJECT
 
 public:
@@ -38,7 +36,8 @@ public:
     void registerCall1DBusObject(const bool incoming);
     void unregisterCall1DBusObject();
     void sendStatus(const CallStatus status);
-    void setAppName(QString name);
+    void setParams(AuroraParams params);
+    AuroraParams getParams();
 
 public slots:
     // ru.auroraos.Call.Call1 methods
@@ -51,18 +50,18 @@ public:
 
 private:
     Call1DBusAdaptor *m_dbusAdaptor;
-    bool m_holdable;
-    bool m_incoming;
-    QString m_localHandle;
-    QString m_localName;
-    QString m_remoteHandle;
-    QString m_remoteName;
+    // bool m_holdable;
+    // bool m_incoming;
+    // QString m_localHandle;
+    // QString m_localName;
+    // QString m_remoteHandle;
+    // QString m_remoteName;
+    AuroraParams m_params;
 
 signals:
     void dbusErrorReceived(const QString &errorMessage);
 
 signals:
-    // ru.auroraos.Call.Call1 signals
     void StatusChanged(const uint32_t status);
 };
 

@@ -16,7 +16,7 @@ constexpr auto MuteCall = "muteCall";
 constexpr auto IsMuted = "isMuted";
 constexpr auto HoldCall = "holdCall";
 constexpr auto EndCall = "endCall";
-constexpr auto SetCallConnected = "setCallConnected";
+constexpr auto SetCallConnected = "callConnected";
 constexpr auto EndAllCalls = "endAllCalls";
 constexpr auto ActiveCalls = "activeCalls";
 constexpr auto GetDevicePushTokenVoIP = "getDevicePushTokenVoIP";
@@ -73,52 +73,80 @@ void FlutterCallkitIncomingPlugin::RegisterMethodHandler() {
         return;
 
       } else if (call.method_name().compare(Methods::ShowMissCallNotification) == 0) {
+
+        result->Success("OK");
         return;
+        
       } else if (call.method_name().compare(Methods::HideCallkitIncoming) == 0) {
+
+        result->Success("OK");
         return;
+
       } else if (call.method_name().compare(Methods::StartCall) == 0) {
 
         result->Success(onStartCall(args_ptr));
         return;
 
       } else if (call.method_name().compare(Methods::MuteCall) == 0) {
-        result->Success();
+
+        result->Success("Mute call isn't supported outside from system call screen");
         return;
+
       } else if (call.method_name().compare(Methods::IsMuted) == 0) {
-        result->Success();
+
+        result->Success("Check mute isn't supported outside from system call screen");
         return;
+
       } else if (call.method_name().compare(Methods::HoldCall) == 0) {
-        result->Success();
+
+        result->Success(onHoldCall(args_ptr));
         return;
+
       } else if (call.method_name().compare(Methods::EndCall) == 0) {
-        result->Success();
+        qInfo() << "END CALL";
+        result->Success(onEndCall());
         return;
+
       } else if (call.method_name().compare(Methods::SetCallConnected) == 0) {
-        result->Success();
+        qInfo() << "SET CALL CONNECTED";
+        result->Success(onSetCallConnected());
         return;
+
       } else if (call.method_name().compare(Methods::EndAllCalls) == 0) {
+
         result->Success();
         return;
+
       } else if (call.method_name().compare(Methods::ActiveCalls) == 0) {
 
         result->Success(onActiveCalls());
         return;
 
       } else if (call.method_name().compare(Methods::GetDevicePushTokenVoIP) == 0) {
-        result->Success();
+
+        result->Success("OK");
         return;
+
       } else if (call.method_name().compare(Methods::SilenceEvents) == 0) {
-        result->Success();
+
+        result->Success("OK");
         return;
+
       } else if (call.method_name().compare(Methods::RequestNotificationPermission) == 0) {
-        result->Success();
+
+        result->Success("OK");
         return;
+
       } else if (call.method_name().compare(Methods::RequestFullIntentPermission) == 0) {
-        result->Success();
+
+        result->Success("OK");
         return;
+        
       } else {
-        result->Success();
+
+        result->Success("Unknown method call");
         return;
+
       }
     }
   );
@@ -157,9 +185,7 @@ EncodableValue FlutterCallkitIncomingPlugin::onShowCallkitIncoming(const Encodab
     return EncodableValue("Invalid arguments, expected EncodableValue with a Map");
   }
   AuroraParams params = AuroraParams::fromEncodableValue(*call_arguments);
-  QVariantMap variantParams = params.toQVariantMap();
-  qInfo() << variantParams;
-  m_callManager->startIncomingCall(variantParams);
+  m_callManager->startIncomingCall(params);
   return EncodableValue("OK");
 }
 
@@ -169,9 +195,7 @@ EncodableValue FlutterCallkitIncomingPlugin::onStartCall(const EncodableValue *c
   }
 
   AuroraParams params = AuroraParams::fromEncodableValue(*call_arguments);
-  QVariantMap variantParams = params.toQVariantMap();
-  qInfo() << variantParams;
-  m_callManager->startOutgoingCall(variantParams);
+  m_callManager->startOutgoingCall(params);
   return EncodableValue("OK");
 }
 
@@ -181,4 +205,38 @@ EncodableValue FlutterCallkitIncomingPlugin::onActiveCalls() {
   const auto callkitJSON = AuroraParams::toCallkitParams(managedObjects);
 
   return callkitJSON;
+}
+
+EncodableValue FlutterCallkitIncomingPlugin::onHoldCall(const EncodableValue *call_arguments) {
+
+  if (!std::holds_alternative<flutter::EncodableMap>(*call_arguments)) {
+    return EncodableValue("Fail to fetch map");
+  }
+
+  const auto& call_arguments_map = std::get<flutter::EncodableMap>(*call_arguments);
+
+  auto id_it = call_arguments_map.find(EncodableValue("id"));
+  auto isOnHold_it = call_arguments_map.find(EncodableValue("isOnHold"));
+
+  if (id_it != call_arguments_map.end() && isOnHold_it != call_arguments_map.end()) {
+    std::string id_stdString = std::get<std::string>(id_it->second);
+    QString id = QString::fromStdString(id_stdString);
+    bool isOnHold = std::get<bool>(isOnHold_it->second);
+
+    m_callManager->setHold(isOnHold);
+  }
+
+  return EncodableValue("OK");
+}
+
+EncodableValue FlutterCallkitIncomingPlugin::onSetCallConnected() {
+  m_callManager->setActive();
+
+  return EncodableValue("OK");
+}
+
+EncodableValue FlutterCallkitIncomingPlugin::onEndCall() {
+  m_callManager->endCurrentCall();
+
+  return EncodableValue("OK");
 }

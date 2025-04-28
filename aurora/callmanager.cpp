@@ -57,31 +57,30 @@ void CallManager::registerCallManager()
     callService1.registerCallManager(s_callManagerObjectPath);
 }
 
-void CallManager::registerCall1DBusObject(QVariantMap params, bool incoming)
+void CallManager::registerCall1DBusObject(AuroraParams params, bool incoming)
 {
+    m_call1DBusObject.setParams(params);
     m_call1DBusObject.registerCall1DBusObject(incoming);
-    //m_call1DBusObject.
+    qInfo() << m_call1DBusObject.getParams().toQVariantMap();
     m_dbusManagedObjects[m_call1DBusObject.objectPath()] =
-            VariantMapMap{ { "ru.auroraos.Call.Call1", params } };
+            VariantMapMap{ { "ru.auroraos.Call.Call1", m_call1DBusObject.getParams().toQVariantMap()} };
     emit InterfacesAdded(m_call1DBusObject.objectPath(),
                          m_dbusManagedObjects[m_call1DBusObject.objectPath()]);
 }
 
-void CallManager::startIncomingCall(QVariantMap params)
+void CallManager::startIncomingCall(AuroraParams params)
 {
-    params["Status"] = Call1DBusObject::Ringing;
+    params.status = Call1DBusObject::Ringing;
     registerCall1DBusObject(params, true);
-    GetManagedObjects();
 }
 
-void CallManager::startOutgoingCall(QVariantMap params)
+void CallManager::startOutgoingCall(AuroraParams params)
 {
-    params["Status"] = Call1DBusObject::Dialing;
+    params.status = Call1DBusObject::Dialing;
     registerCall1DBusObject(params, false);
     m_answerTimer.setSingleShot(true);
     m_answerTimer.setInterval(s_answerInterval);
     m_answerTimer.start();
-    GetManagedObjects();
 }
 
 DBusManagerStruct CallManager::GetManagedObjects()
@@ -157,9 +156,11 @@ void CallManager::answerOutgoingCall()
 void CallManager::handleCallStatusChanged(const uint32_t status)
 {
     QVariantMap body;
+    AuroraParams params;
 
     qInfo() << QStringLiteral("Call status changed: %1")
                        .arg(Call1DBusObject::statusToString(status));
+                       
     m_currentCallStatus = Call1DBusObject::CallStatus(status);
     switch (status)
     {
@@ -178,10 +179,23 @@ void CallManager::handleCallStatusChanged(const uint32_t status)
         break;
     case Call1DBusObject::Dialing:
 
+        params = m_call1DBusObject.getParams();
+
+        qInfo() << "PARAMS: " << params.nameCaller << params.id << params.handle;
+        body["nameCaller"] = params.nameCaller;
+        body["id"] = params.id;
+        body["handle"] = params.handle;
+
         m_eventDispatcher(CallEvent::ACTION_CALL_START, body);
         
         break;
     case Call1DBusObject::Ringing:
+
+        params = m_call1DBusObject.getParams();
+
+        body["nameCaller"] = params.nameCaller;
+        body["id"] = params.id;
+        body["handle"] = params.handle;
 
         m_eventDispatcher(CallEvent::ACTION_CALL_INCOMING, body);
         
@@ -191,20 +205,44 @@ void CallManager::handleCallStatusChanged(const uint32_t status)
         break;
     case Call1DBusObject::Accepting:
 
+        params = m_call1DBusObject.getParams();
+
+        body["nameCaller"] = params.nameCaller;
+        body["id"] = params.id;
+        body["handle"] = params.handle;
+        
         m_eventDispatcher(CallEvent::ACTION_CALL_ACCEPT, body);
 
         break;
     case Call1DBusObject::Active:
         
-        m_eventDispatcher(CallEvent::ACTION_CALL_START, body);
+        body["isHold"] = m_currentCallStatus == Call1DBusObject::Held ? true : false;
+        body["id"] = m_call1DBusObject.getParams().id;
+        m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, body);
 
         break;
     case Call1DBusObject::Held:
+
+        body["isHold"] = m_currentCallStatus == Call1DBusObject::Held ? true : false;
+        body["id"] = m_call1DBusObject.getParams().id;
         m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, body);
+
         break;
     default:
         break;
     }
+}
+
+void CallManager::setHold(bool isHold) {
+    m_call1DBusObject.SetHold(isHold);
+}
+
+void CallManager::setActive() {
+    m_call1DBusObject.Accept();
+}
+
+void CallManager::endCurrentCall() {
+    m_call1DBusObject.Reject(0);
 }
 
 void CallManager::setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback) {
