@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_callkit_incoming_example/call_event_manager.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'main.dart';
 
 class ActiveCallScreen extends StatefulWidget {

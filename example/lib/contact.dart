@@ -18,12 +18,12 @@ class Contact {
     Contact(
       id: Uuid().v4().toString(),
       name: 'Боб',
-      phone: '+7 900 222-33-44'
+      phone: '79055994618'
       ),
     Contact(
       id: Uuid().v4().toString(),
       name: 'Чарли',
-      phone: '+7 900 333-44-55'),
+      phone: '79155364844'),
     Contact(
       id: Uuid().v4().toString(),
       name: 'Дейв',

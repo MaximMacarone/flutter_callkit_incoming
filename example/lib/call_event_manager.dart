@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_callkit_incoming_example/navigation_service.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class CallEventManager {
   static final CallEventManager _instance = CallEventManager._internal();
@@ -11,19 +12,21 @@ class CallEventManager {
   CallEventManager._internal();
 
   StreamSubscription<CallEvent?>? _callSub;
+  WebSocketChannel? _webSocketChannel;
   NavigationService? _navigationService;
 
   void Function(String text)? onShowSnackbar;
-  // void Function(Map<String, dynamic> callData)? onShowIncomingCallScreen;
-  // void Function(Map<String, dynamic> callData)? onShowActiveCallScreen;
 
   void Function(CallEvent event)? onCallHoldToggled;
 
+
   void init({
     required NavigationService navigationService,
+    required WebSocketChannel? webSocketChannel,
     required void Function(String text) onShowSnackbar,
   }) {
     this._navigationService = navigationService;
+    this._webSocketChannel = webSocketChannel;
     this.onShowSnackbar = onShowSnackbar;
 
     _callSub ??= FlutterCallkitIncoming.onEvent.listen(_onCallEvent);
@@ -41,6 +44,12 @@ class CallEventManager {
       case Event.actionCallAccept:
         _navigationService?.pushReplacementNamed("/active_call", arguments: event.body);
         onShowSnackbar?.call('Вызов принят');
+        _webSocketChannel!.sink.add([
+          "answer_call",
+          {
+            "id": event.body["id"]
+          }
+        ]);
         //onShowActiveCallScreen?.call(event.body);
         break;
       case Event.actionCallDecline:

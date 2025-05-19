@@ -1,202 +1,274 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter_callkit_incoming_example/call_event_manager.dart';
+import 'package:flutter_callkit_incoming_example/login_screen.dart';
 import 'package:flutter_callkit_incoming_example/navigation_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'contact.dart';
 import 'incoming_screen.dart';
 import 'active_call_screen.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  final navService = NavigationService();
 
-void main() => runApp(ContactApp());
-
-class ContactApp extends StatefulWidget {
-  @override
-  _ContactAppState createState() => _ContactAppState();
+  // CallEventManager().init(
+  //   navigationService: navService,
+  //   webSocketChannel: null,
+  //   onShowSnackbar: (_) {}
+  // );
+  runApp(MyApp(navigationService: navService));
 }
 
-class _ContactAppState extends State<ContactApp> {
-  final List<Contact> contacts = Contact.mockContacts;
-
-  static final String userName = 'Максим';
-  static final String userPhone = '+7 900 000-00-00';
-
-  Map<String, dynamic>? _activeCall;
-
-  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
-  StreamSubscription<CallEvent?>? _callSub;
-  final NavigationService _navigationService = NavigationService();
-
-  @override
-  void initState() {
-    super.initState();
-    print("created main state");
-    CallEventManager().init(
-      navigationService: _navigationService,
-      onShowSnackbar: _showSnackbar,
-    );
-  }
-
-  @override
-  void dispose() {
-    _callSub?.cancel();
-    super.dispose();
-  }
-
-  void _showSnackbar(String text) {
-    if (!mounted) return;
-    final messenger = _messengerKey.currentState;
-    messenger?.hideCurrentSnackBar();
-    messenger?.showSnackBar(SnackBar(content: Text(text)));
-  }
+class MyApp extends StatelessWidget {
+  final NavigationService navigationService;
+  const MyApp({super.key, required this.navigationService});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      scaffoldMessengerKey: _messengerKey,
-      navigatorKey: _navigationService.navigatorKey,
-      title: 'Контакты',
-      theme: ThemeData(primarySwatch: Colors.teal),
+      navigatorKey: navigationService.navigatorKey,
+      initialRoute: '/login',
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/login':
+            return MaterialPageRoute(
+              builder: (_) => LoginScreen(onLogin: (id, name, phone) {
+                navigationService.pushReplacementNamed(
+                  '/contacts',
+                  arguments: {'id': id, 'name': name, 'phone': phone},
+                );
+              }),
+            );
+          case '/contacts':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (_) => ContactApp(
+                userID:  args['id'] as String,
+                userName: args['name'] as String,
+                userPhone: args['phone'] as String,
+                navigationService: navigationService,
+              ),
+            );
+
           case '/incoming_call':
             final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
+              fullscreenDialog: true,
               builder: (_) => IncomingCallScreen(
-                name: args['nameCaller'],
-                phone: args['handle'],
-                callId: args['id'],
+                name: args['nameCaller'] as String,
+                phone: args['handle'] as String,
+                callId: args['id'] as String,
               ),
             );
+
           case '/active_call':
             final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
+              fullscreenDialog: true,
               builder: (_) => ActiveCallScreen(
-                name: args['nameCaller'],
-                phone: args['handle'],
-                callId: args['id'],
+                name: args['nameCaller'] as String,
+                phone: args['handle'] as String,
+                callId: args['id'] as String,
               ),
             );
+
           default:
-            return MaterialPageRoute(
-              builder: (_) =>
-              Scaffold(
-                appBar: AppBar(title: const Text('Контакты')),
-                body: Column(
-                  children: [
-                    Card(
-                      margin: const EdgeInsets.all(12),
-                      child: ListTile(
-                        leading: const CircleAvatar(
-                          radius: 24,
-                          child: Icon(Icons.person),
-                        ),
-                        title: Text(userName),
-                        subtitle: Text(userPhone),
-                        trailing: Text('Контактов: ${contacts.length}'),
-                        onTap: _startIncomingCall,
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _showActiveCall,
-                      icon: const Icon(Icons.call),
-                      label: const Text('Показать активный звонок'),
-                    ),
-                    if (_activeCall != null)
-                      Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        color: Colors.green.shade50,
-                        child: ListTile(
-                          leading: const Icon(Icons.call),
-                          title: Text(_activeCall!['nameCaller'] ?? 'Неизвестно'),
-                          subtitle: Text(_activeCall!['handle'] ?? ''),
-                          trailing: const Text('Активный'),
-                        ),
-                      ),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: contacts.length,
-                        itemBuilder: (context, index) {
-                          final contact = contacts[index];
-                          return ListTile(
-                            leading: const Icon(Icons.person_outline),
-                            title: Text(contact.name),
-                            subtitle: Text(contact.phone),
-                            onTap: () => _callContact(contact),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ), // твой главный экран
-            );
+            return null;
         }
       },
     );
   }
+}
 
-  void _callContact(Contact contact) {
-    _showSnackbar('Звонок: ${contact.name} (${contact.phone})');
-    debugPrint('Calling ${contact.name} at ${contact.phone}');
-    _makeCall(contact);
-  }
+class ContactApp extends StatefulWidget {
+  final String userID;
+  final String userName;
+  final String userPhone;
+  final NavigationService navigationService;
 
-  void _makeCall(Contact contact) {
-    final params = CallKitParams(
-      id: Uuid().v4().toString(),
-      nameCaller: contact.name,
-      handle: contact.phone,
-      extra: {'userID': contact.id},
-      aurora: const AuroraParams(
-        localName: "Maxim",
-        localHandle: "+7 900 000-00-00",
-        holdable: true,
-        uri: null,
-      ),
+  ContactApp({
+    super.key,
+    required this.userID,
+    required this.userName,
+    required this.userPhone,
+    required this.navigationService,
+  });
+
+  @override
+  State<ContactApp> createState() => _ContactAppState();
+}
+
+class _ContactAppState extends State<ContactApp> {
+  List<Contact> contacts = [];
+  bool _connected = false;
+  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
+  late WebSocketChannel _wsChannel;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectWebSocket();
+    CallEventManager().init(
+      navigationService: widget.navigationService,
+      webSocketChannel: _wsChannel,
+      onShowSnackbar: _showSnackbar,
     );
-    FlutterCallkitIncoming.startCall(params);
+
   }
 
-    void _showActiveCall() async {
-    try {
-      final calls = await FlutterCallkitIncoming.activeCalls();
-      debugPrint('Active calls: $calls');
+  @override
+  void dispose() {
+    print("disposing");
+    CallEventManager().dispose();
+    _wsChannel.sink.close();
+    super.dispose();
+  }
 
-      if (calls is List && calls.isNotEmpty) {
+  void _showSnackbar(String text) {
+    _messengerKey.currentState
+      ?..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  void _connectWebSocket() {
+    final uri = Uri.parse('ws://192.168.1.229:8000/ws/${widget.userID}');
+    print("Trying to connect");
+    _wsChannel = WebSocketChannel.connect(uri);
+
+    _wsChannel.stream.listen(
+      (message) {
+        final decoded = jsonDecode(message);
+
+        if (decoded is List && decoded.length == 2) {
+          final type = decoded[0];
+          final payload = decoded[1];
+
+          if(type == "update_contacts") {
+            print("updating contacts");
+            final List<Contact> onlineContacts = (payload as List).map((e) => Contact(id: e["id"], name: e["name"], phone: e["phone"])).toList();
+            setState(() {
+              contacts = onlineContacts;
+            });
+          }
+          if (type == "incoming_call") {
+            print("incoming call");
+            final params = CallKitParams.fromJson(payload);
+            print(params);
+            _startIncomingCall(params: params);
+          }
+        }
+      },
+      onDone: () {
+        print('Connection closed');
         setState(() {
-          _activeCall = Map<String, dynamic>.from(calls.first);
+          contacts = [];
+          _connected = false;
         });
-        _showSnackbar('Найден активный звонок');
-      } else {
-        setState(() => _activeCall = null);
-        _showSnackbar('Нет активных звонков');
+      },
+      onError: (error) {
+        print("Connection error: $error");
+        setState(() {
+          contacts = [];
+          _connected = false;
+        });
       }
-    } catch (e) {
-      debugPrint('Ошибка при получении активных звонков: $e');
-      _showSnackbar('Ошибка при получении звонков');
-    }
+    );
+    setState(() {
+      _connected = true;
+    });
   }
 
-  void _startIncomingCall() {
-    final contact = Contact.mockContacts[0];
+  Future<void> _makeCall(Contact contact) async {
     final params = CallKitParams(
-      id: Uuid().v4().toString(),
+      id: Uuid().v4(),
       nameCaller: contact.name,
       handle: contact.phone,
-      extra: {'userID': contact.id},
-      aurora: const AuroraParams(
-        localName: "Maxim",
-        localHandle: "+7 900 000-00-00",
+      extra: {
+        'remote_id': contact.id,
+        'local_id': widget.userID,
+        },
+      aurora: AuroraParams(
+        localName: widget.userName,
+        localHandle: widget.userPhone,
         holdable: true,
         uri: null,
       ),
     );
+    await FlutterCallkitIncoming.startCall(params);
+    wsMakeCall(params: params);
+  }
+
+  void _startIncomingCall({required CallKitParams params}) {
     FlutterCallkitIncoming.showCallkitIncoming(params);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaffoldMessenger(
+      key: _messengerKey,
+      child: Scaffold(
+        appBar: AppBar(title: Text('Контакты — ${widget.userName}')),
+        body: Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.all(12),
+              child: ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.person)),
+                title: Text(widget.userName),
+                subtitle: Text(widget.userPhone),
+                trailing: Text('Контактов: ${contacts.length}'),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: contacts.length,
+                itemBuilder: (_, i) {
+                  final c = contacts[i];
+                  return ListTile(
+                    leading: const Icon(Icons.person_outline),
+                    title: Text(c.name),
+                    subtitle: Text(c.phone),
+                    onTap: () => _makeCall(c),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Text( _connected ? "Подключено" : "Нет соединения с сервером",
+                  style: const TextStyle(fontSize: 18),
+                  ),
+                  if (!_connected)
+                  SizedBox(
+                    child: ElevatedButton(
+                      onPressed: _connectWebSocket,
+                      child: const Text("Переподключиться"),
+                    ),
+                  )
+                ],
+              )
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void wsMakeCall({
+    required CallKitParams params
+  }) {
+    final jsonParams = params.toJson();
+    _wsChannel.sink.add(jsonEncode([
+      "make_call", jsonParams
+    ]));
   }
 }
