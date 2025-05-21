@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginUser() async {
-    final url = Uri.parse('http://192.168.1.229:8000/login');
+    final url = Uri.parse('http://192.168.31.168:8000/login');
 
     final userName = _nameController.text.trim();
     final userPhone = _phoneController.text.trim();

@@ -238,11 +238,15 @@ void CallManager::setHold(bool isHold) {
 }
 
 void CallManager::setActive() {
-    m_call1DBusObject.Accept();
+    if (m_call1DBusObject.getParams().status != Call1DBusObject::CallStatus::Active) {
+        m_call1DBusObject.Accept();
+    }
 }
 
 void CallManager::endCurrentCall() {
-    m_call1DBusObject.Reject(0);
+    if (m_call1DBusObject.getParams().status != Call1DBusObject::CallStatus::Disconnected) {
+        m_call1DBusObject.Reject(0);
+    }
 }
 
 void CallManager::setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback) {

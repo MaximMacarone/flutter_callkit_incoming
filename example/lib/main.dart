@@ -65,6 +65,7 @@ class MyApp extends StatelessWidget {
                 name: args['nameCaller'] as String,
                 phone: args['handle'] as String,
                 callId: args['id'] as String,
+                wsChannel: args["wsChannel"] as WebSocketChannel,
               ),
             );
 
@@ -76,6 +77,7 @@ class MyApp extends StatelessWidget {
                 name: args['nameCaller'] as String,
                 phone: args['handle'] as String,
                 callId: args['id'] as String,
+                wsChannel: args["wsChannel"] as WebSocketChannel,
               ),
             );
 
@@ -126,8 +128,8 @@ class _ContactAppState extends State<ContactApp> {
   @override
   void dispose() {
     print("disposing");
-    CallEventManager().dispose();
-    _wsChannel.sink.close();
+    // CallEventManager().dispose();
+    // _wsChannel.sink.close();
     super.dispose();
   }
 
@@ -138,7 +140,7 @@ class _ContactAppState extends State<ContactApp> {
   }
 
   void _connectWebSocket() {
-    final uri = Uri.parse('ws://192.168.1.229:8000/ws/${widget.userID}');
+    final uri = Uri.parse('ws://192.168.31.168:8000/ws/${widget.userID}');
     print("Trying to connect");
     _wsChannel = WebSocketChannel.connect(uri);
 
@@ -163,14 +165,24 @@ class _ContactAppState extends State<ContactApp> {
             print(params);
             _startIncomingCall(params: params);
           }
+          if (type == "set_call_connected") {
+            final id = payload["id"];
+            FlutterCallkitIncoming.setCallConnected(id);
+          }
+          if (type == "disconnect") {
+            final id = payload["id"];
+            FlutterCallkitIncoming.endCall(id);
+          }
         }
       },
       onDone: () {
         print('Connection closed');
-        setState(() {
-          contacts = [];
-          _connected = false;
-        });
+        if(mounted) {
+          setState(() {
+            contacts = [];
+            _connected = false;
+          });
+        }
       },
       onError: (error) {
         print("Connection error: $error");

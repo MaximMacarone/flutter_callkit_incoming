@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
@@ -11,12 +12,14 @@ class ActiveCallScreen extends StatefulWidget {
   final String name;
   final String phone;
   final String callId;
+  final WebSocketChannel wsChannel;
 
   ActiveCallScreen({
     Key? key,
     required this.name,
     required this.phone,
     required this.callId,
+    required this.wsChannel
   }) : super(key: key);
 
   @override
@@ -36,6 +39,17 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
 
     CallEventManager().onCallHoldToggled = _handleCallHeld;
   }
+
+  // void endCall() {
+  //       final payload = [
+  //     'end_call',
+  //     <String, String> {
+  //       'id': widget.callId
+  //     }
+  //   ];
+  //   final json = jsonEncode(payload);
+  //   widget.wsChannel.sink.add(json);
+  // }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -83,7 +97,14 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   }
 
   void _endCall() {
-    FlutterCallkitIncoming.endCall(widget.callId);
+    final payload = [
+      'end_call',
+      <String, String> {
+        'id': widget.callId
+      }
+    ];
+    final json = jsonEncode(payload);
+    widget.wsChannel.sink.add(json);
   }
 
   @override

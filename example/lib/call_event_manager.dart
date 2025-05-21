@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/entities/entities.dart';
@@ -28,7 +29,6 @@ class CallEventManager {
     this._navigationService = navigationService;
     this._webSocketChannel = webSocketChannel;
     this.onShowSnackbar = onShowSnackbar;
-
     _callSub ??= FlutterCallkitIncoming.onEvent.listen(_onCallEvent);
   }
 
@@ -42,14 +42,14 @@ class CallEventManager {
     debugPrint('Received call event: $event');
     switch (event.event) {
       case Event.actionCallAccept:
-        _navigationService?.pushReplacementNamed("/active_call", arguments: event.body);
+        _navigationService?.pushNamed("/active_call", arguments: {
+          "nameCaller" : event.body["nameCaller"],
+          "handle": event.body["handle"],
+          "id": event.body["id"],
+          "wsChannel": _webSocketChannel
+        });
         onShowSnackbar?.call('Вызов принят');
-        _webSocketChannel!.sink.add([
-          "answer_call",
-          {
-            "id": event.body["id"]
-          }
-        ]);
+        
         //onShowActiveCallScreen?.call(event.body);
         break;
       case Event.actionCallDecline:
@@ -62,7 +62,12 @@ class CallEventManager {
         break;
       case Event.actionCallIncoming:
         onShowSnackbar?.call('Входящий вызов');
-        _navigationService?.pushNamed("/incoming_call", arguments: event.body);
+        _navigationService?.pushNamed("/incoming_call", arguments: {
+          "nameCaller" : event.body["nameCaller"],
+          "handle": event.body["handle"],
+          "id": event.body["id"],
+          "wsChannel": _webSocketChannel
+        });
         break;
       case Event.actionDidUpdateDevicePushTokenVoip:
         // TODO: Handle this case.
