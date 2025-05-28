@@ -155,7 +155,6 @@ void CallManager::answerOutgoingCall()
 
 void CallManager::handleCallStatusChanged(const uint32_t status)
 {
-    QVariantMap body;
     AuroraParams params;
 
     qInfo() << QStringLiteral("Call status changed: %1")
@@ -169,12 +168,14 @@ void CallManager::handleCallStatusChanged(const uint32_t status)
         break;
     case Call1DBusObject::Disconnected:
 
+        params = m_call1DBusObject.getParams();
+
         m_dbusManagedObjects.remove(m_call1DBusObject.objectPath());
         emit InterfacesRemoved(m_call1DBusObject.objectPath(),
                             QStringList{ "ru.auroraos.Call.Call1" });
         m_call1DBusObject.unregisterCall1DBusObject();
 
-        m_eventDispatcher(CallEvent::ACTION_CALL_ENDED, body);
+        m_eventDispatcher(CallEvent::ACTION_CALL_ENDED, params.toEncodableMap());
         
         break;
     case Call1DBusObject::Dialing:
@@ -182,50 +183,55 @@ void CallManager::handleCallStatusChanged(const uint32_t status)
         params = m_call1DBusObject.getParams();
 
         qInfo() << "PARAMS: " << params.nameCaller << params.id << params.handle;
-        body["nameCaller"] = params.nameCaller;
-        body["id"] = params.id;
-        body["handle"] = params.handle;
+        // body["nameCaller"] = params.nameCaller;
+        // body["id"] = params.id;
+        // body["handle"] = params.handle;
 
-        m_eventDispatcher(CallEvent::ACTION_CALL_START, body);
+        m_eventDispatcher(CallEvent::ACTION_CALL_START, params.toEncodableMap());
         
         break;
     case Call1DBusObject::Ringing:
 
         params = m_call1DBusObject.getParams();
 
-        body["nameCaller"] = params.nameCaller;
-        body["id"] = params.id;
-        body["handle"] = params.handle;
+        // body["nameCaller"] = params.nameCaller;
+        // body["id"] = params.id;
+        // body["handle"] = params.handle;
 
-        m_eventDispatcher(CallEvent::ACTION_CALL_INCOMING, body);
+        m_eventDispatcher(CallEvent::ACTION_CALL_INCOMING, params.toEncodableMap());
         
         break;
     case Call1DBusObject::Rejecting:
-        m_eventDispatcher(CallEvent::ACTION_CALL_DECLINE, body);
+
+        params = m_call1DBusObject.getParams();
+        // body["id"] = params.id;
+        m_eventDispatcher(CallEvent::ACTION_CALL_DECLINE, params.toEncodableMap());
         break;
     case Call1DBusObject::Accepting:
 
         params = m_call1DBusObject.getParams();
 
-        body["nameCaller"] = params.nameCaller;
-        body["id"] = params.id;
-        body["handle"] = params.handle;
+        // body["nameCaller"] = params.nameCaller;
+        // body["id"] = params.id;
+        // body["handle"] = params.handle;
         
-        m_eventDispatcher(CallEvent::ACTION_CALL_ACCEPT, body);
+        m_eventDispatcher(CallEvent::ACTION_CALL_ACCEPT, params.toEncodableMap());
 
         break;
     case Call1DBusObject::Active:
         
-        body["isHold"] = m_currentCallStatus == Call1DBusObject::Held ? true : false;
-        body["id"] = m_call1DBusObject.getParams().id;
-        m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, body);
+        // body["isHold"] = m_currentCallStatus == Call1DBusObject::Held ? true : false;
+        // body["id"] = m_call1DBusObject.getParams().id;
+        params = m_call1DBusObject.getParams();
+        m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, params.toEncodableMap());
 
         break;
     case Call1DBusObject::Held:
+        params = m_call1DBusObject.getParams();
 
-        body["isHold"] = m_currentCallStatus == Call1DBusObject::Held ? true : false;
-        body["id"] = m_call1DBusObject.getParams().id;
-        m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, body);
+        // body["isHold"] = m_currentCallStatus == Call1DBusObject::Held ? true : false;
+        // body["id"] = m_call1DBusObject.getParams().id;
+        m_eventDispatcher(CallEvent::ACTION_CALL_TOGGLE_HOLD, params.toEncodableMap());
 
         break;
     default:
@@ -249,7 +255,7 @@ void CallManager::endCurrentCall() {
     }
 }
 
-void CallManager::setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback) {
+void CallManager::setEventDispatcher(std::function<void(const CallEvent::Event event, const flutter::EncodableMap&)> callback) {
     m_eventDispatcher = std::move(callback);
 }
 

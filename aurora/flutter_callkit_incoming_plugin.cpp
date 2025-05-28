@@ -51,13 +51,21 @@ FlutterCallkitIncomingPlugin::FlutterCallkitIncomingPlugin(
   m_callManager = std::make_unique<CallManager>();
   m_callManager->registerCallManager();
 
+  // m_callManager->setEventDispatcher(
+  //   [this](const CallEvent::Event event, const QVariantMap &body) {
+
+  //     auto encBody = QVariantMapToEncodableMap(body);
+
+  //     sendCallEvent(event, encBody);
+  //   });
+
   m_callManager->setEventDispatcher(
-    [this](const CallEvent::Event event, const QVariantMap &body) {
+    [this](const CallEvent::Event event, const EncodableMap &body) {
 
-      auto encBody = QVariantMapToEncodableMap(body);
+      //auto encBody = QVariantMapToEncodableMap(body);
 
-      sendCallEvent(event, encBody);
-    });
+      sendCallEvent(event, body);
+  });
 
   RegisterMethodHandler();
   RegisterEventChannel();

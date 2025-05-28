@@ -140,7 +140,7 @@ class _ContactAppState extends State<ContactApp> {
   }
 
   void _connectWebSocket() {
-    final uri = Uri.parse('ws://192.168.31.168:8000/ws/${widget.userID}');
+    final uri = Uri.parse('ws://147.45.249.209:8000/ws/${widget.userID}');
     print("Trying to connect");
     _wsChannel = WebSocketChannel.connect(uri);
 
@@ -214,7 +214,7 @@ class _ContactAppState extends State<ContactApp> {
       ),
     );
     await FlutterCallkitIncoming.startCall(params);
-    wsMakeCall(params: params);
+    //wsMakeCall(params: params);
   }
 
   void _startIncomingCall({required CallKitParams params}) {

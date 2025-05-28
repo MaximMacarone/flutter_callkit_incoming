@@ -127,7 +127,6 @@ flutter::EncodableList AuroraParams::toCallkitParams(DBusManagerStruct managedOb
     if (itIface == ifaces.end()) continue;
 
     QVariantMap props = itIface.value();
-
     flutter::EncodableMap json;
 
     json[flutter::EncodableValue("id")] = flutter::EncodableValue(props.value("Id").toString().toStdString());
@@ -171,4 +170,89 @@ flutter::EncodableList AuroraParams::toCallkitParams(DBusManagerStruct managedOb
     out.push_back(flutter::EncodableValue(json));
   }
   return out;
+}
+
+flutter::EncodableMap AuroraParams::toEncodableMap() {
+  using flutter::EncodableMap;
+  using flutter::EncodableValue;
+
+  // // вспомогательная функция из предыдущего примера
+  // auto variantToEncodable = [&](const QVariant& v) {
+  //   // реализация как раньше: поддержка QString, bool, int, double, списков, карт
+  //   // …
+  // };
+
+  EncodableMap result;
+
+  // 1) Первые пять полей — на самый верх
+  result[EncodableValue("id")]         = EncodableValue(id.toStdString());
+  result[EncodableValue("appName")]    = EncodableValue(appName.toStdString());
+  result[EncodableValue("nameCaller")] = EncodableValue(nameCaller.toStdString());
+  result[EncodableValue("handle")]     = EncodableValue(handle.toStdString());
+
+  // extra → Map<String, dynamic>
+  EncodableMap extraMap;
+  for (auto it = extra.cbegin(); it != extra.cend(); ++it) {
+    extraMap[EncodableValue(it.key().toStdString())] = AuroraParams::variantToEncodable(it.value());
+  }
+  result[EncodableValue("extra")] = EncodableValue(extraMap);
+
+  // 2) Собираем вложенный объект "aurora"
+  EncodableMap auroraMap;
+  auroraMap[EncodableValue("localHandle")] = EncodableValue(localHandle.toStdString());
+  auroraMap[EncodableValue("localName")]   = EncodableValue(localName.toStdString());
+  auroraMap[EncodableValue("holdable")]    = EncodableValue(holdable);
+  auroraMap[EncodableValue("status")]      = EncodableValue(status);
+
+  // uri — опционально, null если нет
+  if (uri.has_value() && !uri->isNull()) {
+    auroraMap[EncodableValue("uri")] = EncodableValue(uri->toStdString());
+  } else {
+    auroraMap[EncodableValue("uri")] = EncodableValue();
+  }
+
+  // Кладём готовый auroraMap в корень под ключом "aurora"
+  result[EncodableValue("aurora")] = EncodableValue(auroraMap);
+
+  return result;
+}
+
+flutter::EncodableValue AuroraParams::variantToEncodable(const QVariant& v) {
+  using flutter::EncodableMap;
+  using flutter::EncodableList;
+  using flutter::EncodableValue;
+
+  if (v.isNull()) {
+    return EncodableValue();
+  }
+  switch (v.type()) {
+    case QMetaType::QString:
+      return EncodableValue(v.toString().toStdString());
+    case QMetaType::Bool:
+      return EncodableValue(v.toBool());
+    case QMetaType::Int:
+    case QMetaType::LongLong:
+    case QMetaType::UInt:
+    case QMetaType::ULongLong:
+      return EncodableValue(static_cast<int>(v.toLongLong()));
+    case QMetaType::Double:
+      return EncodableValue(v.toDouble());
+    case QMetaType::QVariantList: {
+      EncodableList list;
+      for (auto &elem : v.toList()) {
+        list.push_back(variantToEncodable(elem));
+      }
+      return EncodableValue(list);
+    }
+    case QMetaType::QVariantMap: {
+      EncodableMap m;
+      for (auto it = v.toMap().cbegin(); it != v.toMap().cend(); ++it) {
+        m[EncodableValue(it.key().toStdString())] = variantToEncodable(it.value());
+      }
+      return EncodableValue(m);
+    }
+    default:
+      // fallback: строковое представление
+      return EncodableValue(v.toString().toStdString());
+  }
 }

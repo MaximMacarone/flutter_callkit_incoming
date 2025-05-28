@@ -17,9 +17,9 @@ class CallEventManager {
   NavigationService? _navigationService;
 
   void Function(String text)? onShowSnackbar;
-
   void Function(CallEvent event)? onCallHoldToggled;
 
+  CallStatus currentStatus = CallStatus.unknown;
 
   void init({
     required NavigationService navigationService,
@@ -42,37 +42,69 @@ class CallEventManager {
     debugPrint('Received call event: $event');
     switch (event.event) {
       case Event.actionCallAccept:
-        _navigationService?.pushNamed("/active_call", arguments: {
-          "nameCaller" : event.body["nameCaller"],
-          "handle": event.body["handle"],
-          "id": event.body["id"],
-          "wsChannel": _webSocketChannel
-        });
-        onShowSnackbar?.call('Вызов принят');
-        
-        //onShowActiveCallScreen?.call(event.body);
+        if (currentStatus != CallStatus.active) {
+          currentStatus = CallStatus.accepting;
+          _navigationService?.pushNamed("/active_call", arguments: {
+            "nameCaller" : event.body["nameCaller"],
+            "handle": event.body["handle"],
+            "id": event.body["id"],
+            "wsChannel": _webSocketChannel
+          });
+          onShowSnackbar?.call('Вызов принят');
+          final payload = [
+            'answer_call',
+            <String, String> {
+              'id': event.body["id"]
+            }
+          ];
+          final json = jsonEncode(payload);
+          _webSocketChannel?.sink.add(json);
+          currentStatus = CallStatus.active;
+        }
         break;
       case Event.actionCallDecline:
-        _navigationService?.popUntilFirst();
-        onShowSnackbar?.call('Вызов отклонён');
+        if (currentStatus != CallStatus.rejecting) {
+          currentStatus = CallStatus.rejecting;
+
+          final payload = [
+          'end_call',
+          <String, String> {
+            'id': event.body["id"]
+          }];
+          final json = jsonEncode(payload);
+          _webSocketChannel?.sink.add(json);
+
+          _navigationService?.popUntilFirst();
+        }
         break;
       case Event.actionCallEnded:
         _navigationService?.popUntilFirst();
         onShowSnackbar?.call('Вызов завершён');
+        currentStatus = CallStatus.disconnected;
         break;
       case Event.actionCallIncoming:
-        onShowSnackbar?.call('Входящий вызов');
-        _navigationService?.pushNamed("/incoming_call", arguments: {
-          "nameCaller" : event.body["nameCaller"],
-          "handle": event.body["handle"],
-          "id": event.body["id"],
-          "wsChannel": _webSocketChannel
-        });
+        if (currentStatus != CallStatus.ringing) {
+          currentStatus = CallStatus.ringing;
+          onShowSnackbar?.call('Входящий вызов');
+          _navigationService?.pushNamed("/incoming_call", arguments: {
+            "nameCaller" : event.body["nameCaller"],
+            "handle": event.body["handle"],
+            "id": event.body["id"],
+            "wsChannel": _webSocketChannel
+          });
+        }
         break;
       case Event.actionDidUpdateDevicePushTokenVoip:
         // TODO: Handle this case.
         break;
       case Event.actionCallStart:
+        if (currentStatus != CallStatus.dialing) {
+          // final jsonParams = ;
+          _webSocketChannel?.sink.add(jsonEncode([
+            "make_call", event.body
+            ]));
+          currentStatus = CallStatus.dialing;
+        }
         // TODO: Handle this case.
         break;
       case Event.actionCallTimeout:

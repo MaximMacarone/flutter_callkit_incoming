@@ -97,14 +97,15 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   }
 
   void _endCall() {
-    final payload = [
-      'end_call',
-      <String, String> {
-        'id': widget.callId
-      }
-    ];
-    final json = jsonEncode(payload);
-    widget.wsChannel.sink.add(json);
+    // final payload = [
+    //   'end_call',
+    //   <String, String> {
+    //     'id': widget.callId
+    //   }
+    // ];
+    // final json = jsonEncode(payload);
+    // widget.wsChannel.sink.add(json);
+    FlutterCallkitIncoming.endCall(widget.callId);
   }
 
   @override

@@ -44,7 +44,7 @@ public:
     void setActive();
     void endCurrentCall();
 
-    void setEventDispatcher(std::function<void(const CallEvent::Event event, const QVariantMap&)> callback);
+    void setEventDispatcher(std::function<void(const CallEvent::Event event, const flutter::EncodableMap&)> callback);
 
 public slots:
     // org.freedesktop.DBus.ObjectManager method
@@ -70,7 +70,8 @@ private:
     DBusManagerStruct m_dbusManagedObjects;
     Call1DBusObject::CallStatus m_currentCallStatus;
 
-    std::function<void(const CallEvent::Event event, const QVariantMap&)> m_eventDispatcher;
+    // std::function<void(const CallEvent::Event event, const QVariantMap&)> m_eventDispatcher;
+    std::function<void(const CallEvent::Event event, const flutter::EncodableMap&)> m_eventDispatcher;
 
 signals:
     void callManagerRegistered();

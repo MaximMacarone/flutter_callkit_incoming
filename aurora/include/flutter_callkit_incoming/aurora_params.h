@@ -29,4 +29,6 @@ struct AuroraParams {
     static AuroraParams fromEncodableValue(const flutter::EncodableValue& value);
     QVariantMap toQVariantMap() const;
     static flutter::EncodableList toCallkitParams(DBusManagerStruct managedObjects);
+    flutter::EncodableMap toEncodableMap();
+    static flutter::EncodableValue variantToEncodable(const QVariant& v);
 };

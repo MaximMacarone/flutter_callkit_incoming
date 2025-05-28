@@ -19,17 +19,26 @@ class IncomingCallScreen extends StatelessWidget {
   }) : super(key: key);
 
   void _acceptCall() {
-    final payload = [
-      'answer_call',
-      <String, String> {
-        'id': callId
-      }
-    ];
-    final json = jsonEncode(payload);
-    wsChannel.sink.add(json);
+    // final payload = [
+    //   'answer_call',
+    //   <String, String> {
+    //     'id': callId
+    //   }
+    // ];
+    // final json = jsonEncode(payload);
+    // wsChannel.sink.add(json);
+    FlutterCallkitIncoming.setCallConnected(callId);
   }
 
   void _declineCall() {
+    //     final payload = [
+    //   'end_call',
+    //   <String, String> {
+    //     'id': callId
+    //   }
+    // ];
+    // final json = jsonEncode(payload);
+    // wsChannel.sink.add(json);
     FlutterCallkitIncoming.endCall(callId);
   }
 
